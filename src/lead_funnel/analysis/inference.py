@@ -333,3 +333,34 @@ def plot_qq(values: pd.Series, groups: pd.Series, path: Path, *, title: str) -> 
     fig.tight_layout()
     viz.caption(fig, "Residuals = value − group mean; random sample of 3 000 points shown.")
     return viz.save_fig(fig, path)
+
+
+def leads_from_generated(data) -> pd.DataFrame:
+    """``eda.load_leads()``-shaped frame built directly from a *clean* generator run.
+
+    Skips the warehouse so that the whole analysis can be repeated on many seeds in
+    seconds (robustness check 4 in the plan) and tested without a database.
+    """
+    leads = data.tables["leads"].reset_index(drop=True)
+    truth = data.truth_leads.reset_index(drop=True)
+    local = leads["created_at"].dt.tz_convert("Europe/Berlin")
+    hours = truth["true_hours_to_first_response"]
+    responded = truth["responded"].to_numpy()
+    sla = pd.array(np.where(responded, hours <= 1, False), dtype="boolean")
+    return pd.DataFrame(
+        {
+            "lead_id": leads["lead_id"],
+            "channel": leads["channel"],
+            "lead_source": leads["source"],
+            "company_size_band": truth["size_band"],
+            "lead_score": leads["lead_score"],
+            "is_responded": responded,
+            "minutes_to_first_response": hours * 60,
+            "is_sla_met": sla,
+            "is_response_time_invalid": False,
+            "is_response_time_outlier": False,
+            "is_converted": truth["converted"].to_numpy(),
+            "iso_day_of_week": local.dt.day_of_week.to_numpy() + 1,
+            "local_hour": local.dt.hour.to_numpy(),
+        }
+    )

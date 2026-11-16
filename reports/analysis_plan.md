@@ -103,4 +103,6 @@ model.
 
 ## Deviations
 
-_None yet._
+| # | Change | Reason | Impact on results |
+|---|---|---|---|
+| D1 | Reference category of `company_size_band` set to `small` instead of the alphabetical default (`enterprise`). | The default reference holds only 3 % of leads, which inflated the VIFs of the other size dummies (up to 8) and made the diagnostics misleading. | None on fit, predictions or the response-time coefficient — a reparametrisation of the same model. |
