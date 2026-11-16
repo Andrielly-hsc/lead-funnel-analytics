@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | In Progress |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F04](F04-dimensional-model-dbt.md) |
 | **Estimate** | 7 h |
@@ -42,7 +42,7 @@ Describe the funnel rigorously: variable types, distributions, group and period 
 | [F07-T01](../tasks/F07-T01-univariate-analysis.md) | Classify variables and describe distributions | 2 h | To Do |
 | [F07-T02](../tasks/F07-T02-group-and-period-comparison.md) | Compare groups and periods | 2 h | To Do |
 | [F07-T03](../tasks/F07-T03-anomalies-and-limitations.md) | Detect anomalies and document source limitations | 2 h | To Do |
-| [F07-T04](../tasks/F07-T04-visualisation-standards.md) | Implement figure standards | 1 h | To Do |
+| [F07-T04](../tasks/F07-T04-visualisation-standards.md) | Implement figure standards | 1 h | Done |
 
 ## Syllabus topics covered
 
