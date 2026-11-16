@@ -43,8 +43,8 @@ def test_command_is_required() -> None:
 
 def test_unimplemented_command_points_to_its_task(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.ERROR):
-        assert cli.main(["ingest"]) == 1
-    assert "F03-T02" in caplog.text
+        assert cli.main(["profile"]) == 1
+    assert "F05-T01" in caplog.text
 
 
 def test_invalid_configuration_returns_exit_code_2(
@@ -52,13 +52,13 @@ def test_invalid_configuration_returns_exit_code_2(
 ) -> None:
     monkeypatch.setenv("LF_SEED", "not-a-number")
     with caplog.at_level(logging.ERROR):
-        assert cli.main(["ingest"]) == 2
+        assert cli.main(["profile"]) == 2
     assert "Invalid configuration" in caplog.text
 
 
 def test_log_level_flag_overrides_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LF_LOG_LEVEL", "ERROR")
-    cli.main(["--log-level", "debug", "ingest"])
+    cli.main(["--log-level", "debug", "profile"])
     assert logging.getLogger().level == logging.DEBUG
 
 
