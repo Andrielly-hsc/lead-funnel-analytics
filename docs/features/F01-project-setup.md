@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | In Progress |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | — |
 | **Estimate** | 8 h |
@@ -42,7 +42,7 @@ Create a professional, reproducible repository skeleton so every later feature s
 
 | ID | Task | Estimate | Status |
 |---|---|---|---|
-| [F01-T01](../tasks/F01-T01-initialize-repository.md) | Initialize the Git repository | 1 h | To Do |
+| [F01-T01](../tasks/F01-T01-initialize-repository.md) | Initialize the Git repository | 1 h | Done |
 | [F01-T02](../tasks/F01-T02-python-packaging.md) | Configure Python packaging and environment | 2 h | To Do |
 | [F01-T03](../tasks/F01-T03-code-quality-tooling.md) | Set up lint, format and pre-commit hooks | 1 h | To Do |
 | [F01-T04](../tasks/F01-T04-test-scaffolding.md) | Create the test scaffolding | 1 h | To Do |

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F01 — Project setup & engineering standards](../features/F01-project-setup.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | — |
 | **Branch** | `feat/F01-T01-initialize-repository` |
@@ -40,4 +40,5 @@ A clean history and predictable conventions are the first thing a reviewer sees.
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- Initial commit made directly on `main` (bootstrap). From F01-T02 on, every task gets its own branch and Pull Request.
+- Line endings normalised to LF via `.gitattributes`: development happens on Windows, CI runs on Linux, and without it every file would show as changed.
