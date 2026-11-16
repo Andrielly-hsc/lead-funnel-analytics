@@ -66,6 +66,16 @@ dbt docs generate --project-dir dbt --profiles-dir dbt && dbt docs serve --proje
 
 Lineage diagram: [docs/lineage.md](docs/lineage.md).
 
+### Data quality
+
+```bash
+lead-funnel profile   # column profiles, quality scorecard and duplicate analysis -> reports/quality/
+```
+
+Results: [scorecard](reports/quality/scorecard.md) ·
+[near-duplicate analysis](reports/quality/dedup_analysis.md) ·
+[known issues](docs/data/known_issues.md).
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 

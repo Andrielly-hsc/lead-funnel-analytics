@@ -61,10 +61,18 @@ models:
           - DK
   - name: industry
     description: Industry of the company. Missing completely at random in about 8 % of leads.
+    data_tests:
+    - dbt_utils.not_null_proportion:
+        arguments:
+          at_least: 0.85
   - name: company_name
     description: Company name (fictional). Business data, not personal data.
   - name: company_size
     description: Number of employees. Missing more often for web-form leads (optional field).
+    data_tests:
+    - dbt_utils.not_null_proportion:
+        arguments:
+          at_least: 0.80
   - name: company_size_band
     description: '`small` (1-49), `medium` (50-249), `large` (250-999), `enterprise` (1000+) or
       `unknown`.'

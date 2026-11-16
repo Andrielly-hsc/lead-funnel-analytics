@@ -15,6 +15,10 @@ touches as (
     select * from {{ ref('int_leads__touch_counts') }}
 ),
 
+duplicates as (
+    select * from {{ ref('int_leads__duplicates') }}
+),
+
 opportunities as (
     select * from {{ ref('stg_crm__opportunities') }}
 ),
@@ -74,6 +78,10 @@ final as (
         touches.n_meetings,
         touches.n_late_records,
 
+        -- data quality
+        duplicates.is_probable_duplicate,
+        duplicates.duplicate_of_lead_id,
+
         -- outcome
         opportunities.opportunity_id is not null as is_converted,
         opportunities.opportunity_id,
@@ -86,6 +94,8 @@ final as (
         on leads.lead_id = first_response.lead_id
     left join touches
         on leads.lead_id = touches.lead_id
+    left join duplicates
+        on leads.lead_id = duplicates.lead_id
     left join opportunities
         on leads.lead_id = opportunities.lead_id
     left join dim_channel

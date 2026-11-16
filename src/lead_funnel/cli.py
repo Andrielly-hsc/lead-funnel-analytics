@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import json
 import logging
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -108,14 +109,65 @@ def _ingest(args: argparse.Namespace, settings: Settings) -> int:
     return 1 if bad else 0
 
 
+# ----------------------------------------------------------------------------------
+# profile
+# ----------------------------------------------------------------------------------
+RAW_TABLES = ("leads", "interactions", "agents", "campaigns", "opportunities")
+
+
+def _profile(args: argparse.Namespace, settings: Settings) -> int:
+    import duckdb
+
+    from lead_funnel.ingestion.warehouse import connect
+    from lead_funnel.quality import dedup
+    from lead_funnel.quality.profiling import write_profiles
+    from lead_funnel.quality.scorecard import compute_scorecard, plot_scorecard, to_markdown
+
+    if not settings.db_path.exists():
+        logger.error("Warehouse %s not found. Run `lead-funnel ingest` first.", settings.db_path)
+        return 2
+    out_dir = settings.reports_dir / "quality"
+    with connect(settings.db_path, read_only=True) as con:
+        written = write_profiles(con, [f"raw.{t}" for t in RAW_TABLES], out_dir)
+        try:
+            scorecard = compute_scorecard(con, settings.raw_dir / "_truth_leads.parquet")
+            leads = dedup.load_leads(con)
+        except duckdb.CatalogException:
+            logger.error("Staging/marts tables missing. Run `dbt build` before the scorecard.")
+            return 2
+    truth_file = settings.raw_dir / "_ground_truth.json"
+    if truth_file.exists():
+        pairs = json.loads(truth_file.read_text(encoding="utf-8"))["injected_issues"]
+        truth = {tuple(p) for p in pairs["near_duplicate_pairs"]}
+        table = dedup.compare_strategies(leads, truth)
+        (out_dir / "dedup_analysis.md").write_text(
+            dedup.to_markdown(table, len(truth)),
+            encoding="utf-8",
+            newline="\n",
+        )
+    figure = plot_scorecard(scorecard, settings.reports_dir / "figures" / "quality_scorecard.png")
+    (out_dir / "scorecard.md").write_text(
+        to_markdown(scorecard, figure="../figures/" + figure.name),
+        encoding="utf-8",
+        newline="\n",
+    )
+    fails = scorecard.loc[scorecard["status"] == "FAIL", ["metric", "layer"]]
+    logger.info(
+        "Wrote %d profiles and the scorecard to %s (%d checks failing: %s)",
+        len(written),
+        out_dir,
+        len(fails),
+        ", ".join(f"{m} [{lyr}]" for m, lyr in fails.itertuples(index=False)) or "none",
+    )
+    return 0
+
+
 COMMANDS: dict[str, Command] = {
     "generate": Command(
         "Generate the synthetic CRM dataset into data/raw/", _generate, _generate_arguments
     ),
     "ingest": Command("Load landing files into the DuckDB raw layer", _ingest, _ingest_arguments),
-    "profile": Command(
-        "Profile raw data and build the quality scorecard", _not_implemented("F05-T01")
-    ),
+    "profile": Command("Profile raw data and build the quality scorecard", _profile),
     "report": Command("Produce analysis figures and statistics", _not_implemented("F08")),
 }
 

@@ -98,6 +98,14 @@ models:
     description: Number of meetings.
   - name: n_late_records
     description: Interactions recorded more than `var('late_record_hours')` after they happened.
+  - name: is_probable_duplicate
+    description: >
+      True if this lead is a near-duplicate of an earlier lead (same e-mail or phone).
+      **Exclude from funnel and SLA analyses**: duplicates are never contacted and would
+      inflate the never-answered share. See int_leads__duplicates.
+    data_tests: [not_null]
+  - name: duplicate_of_lead_id
+    description: Master lead of the duplicate group; null if not a duplicate.
   - name: is_converted
     description: True if the lead became an opportunity.
     data_tests: [not_null]
