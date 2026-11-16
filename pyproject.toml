@@ -25,6 +25,7 @@ dependencies = [
     "pandas>=2.2",
     "pyarrow>=17.0",
     "python-dotenv>=1.0",
+    "pytz>=2024.1",  # needed by duckdb to return TIMESTAMPTZ values to Python
     "statsmodels>=0.14",
 ]
 
@@ -92,6 +93,9 @@ markers = [
 filterwarnings = [
     "error::DeprecationWarning",
     "error::FutureWarning",
+    # Raised *inside* duckdb when converting TIMESTAMPTZ to pandas; not our code.
+    # Remove once duckdb stops calling DataFrame.drop(inplace=True).
+    "ignore:The inplace keyword in DataFrame.drop is deprecated:DeprecationWarning",
 ]
 
 [tool.coverage.run]
