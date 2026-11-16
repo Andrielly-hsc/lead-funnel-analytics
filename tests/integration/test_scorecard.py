@@ -55,10 +55,10 @@ def con(tmp_warehouse):
     c.execute(
         """
         create table marts.fct_leads as select * from (values
-            ('L1', true,  30.0),
-            ('L2', true,  -5.0),
-            ('L3', false, null)
-        ) v(lead_id, is_responded, minutes_to_first_response)
+            ('L1', true,  30.0, 'h1', false),
+            ('L2', true,  -5.0, 'h1', true),
+            ('L3', false, null, 'h3', false)
+        ) v(lead_id, is_responded, minutes_to_first_response, email_hash, is_probable_duplicate)
         """
     )
     return c
@@ -76,6 +76,8 @@ def test_values_and_statuses(con) -> None:
     assert _row(sc, "lead rows unique by lead_id", "staging")["status"] == "PASS"
     assert _row(sc, "channel is a canonical code", "raw")["value"] == 0.5
     assert _row(sc, "one lead per person (e-mail)", "staging")["conforming"] == 2
+    deduplicated = _row(sc, "one lead per person, flagged duplicates excluded", "marts")
+    assert (deduplicated["conforming"], deduplicated["total"]) == (2, 2)
     assert _row(sc, "response time not negative", "marts")["value"] == 0.5
     assert _row(sc, "interaction recorded within 48 h", "raw")["status"] == "FAIL"
 

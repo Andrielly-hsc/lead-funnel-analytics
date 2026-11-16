@@ -257,7 +257,9 @@ pyyaml==6.0.3
     #   pre-commit
     #   sqlfluff
 rapidfuzz==3.14.6
-    # via metricflow
+    # via
+    #   lead-funnel (pyproject.toml)
+    #   metricflow
 referencing==0.37.0
     # via
     #   jsonschema

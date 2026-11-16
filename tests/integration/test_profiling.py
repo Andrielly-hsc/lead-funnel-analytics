@@ -65,3 +65,24 @@ def test_cli_profile_needs_a_warehouse(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("LF_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.delenv("LF_DB_PATH", raising=False)
     assert cli.main(["profile"]) == 2
+
+
+def test_cli_profile_without_dbt_models_explains_what_to_run(
+    landing: Path, monkeypatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Raw tables exist (ingested) but dbt has not built staging/marts yet."""
+    import logging
+
+    from lead_funnel.ingestion.loaders import ingest
+
+    data_dir = landing.parent
+    db = data_dir / "warehouse" / "lead_funnel.duckdb"
+    ingest(landing, db)
+    monkeypatch.chdir(data_dir.parent)
+    monkeypatch.setenv("LF_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("LF_REPORTS_DIR", str(data_dir.parent / "reports"))
+    monkeypatch.delenv("LF_DB_PATH", raising=False)
+    with caplog.at_level(logging.ERROR):
+        assert cli.main(["profile"]) == 2
+    assert "Run `dbt build`" in caplog.text
+    assert (data_dir.parent / "reports" / "quality" / "profile_leads.md").exists()

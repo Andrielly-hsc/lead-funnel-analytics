@@ -25,3 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (single SLA definition), marts (`fct_leads`, `fct_interactions`, conformed dimensions, SCD2
   `dim_agent` with point-in-time joins), reconciliation tests, exposures and generated lineage;
   end-to-end pipeline job in CI.
+- Data quality (`lead-funnel profile`): exact column profiles, a 16-metric scorecard over the six
+  quality dimensions (raw vs after the pipeline, accuracy against the ground truth), error/warn
+  dbt tests with a known-issues register, and near-duplicate flagging justified by a
+  precision/recall comparison of matching strategies.

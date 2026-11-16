@@ -76,6 +76,14 @@ METRICS: tuple[Metric, ...] = (
         "select count(distinct email_hash), count(*) from staging.stg_crm__leads",
     ),
     Metric(
+        "uniqueness",
+        "one lead per person, flagged duplicates excluded",
+        "marts",
+        0.995,
+        "select count(distinct email_hash), count(*) from marts.fct_leads "
+        "where not is_probable_duplicate",
+    ),
+    Metric(
         "validity",
         "channel is a canonical code",
         "raw",
