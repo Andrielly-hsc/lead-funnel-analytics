@@ -25,6 +25,7 @@ dependencies = [
     "pandas>=2.2",
     "pyarrow>=17.0",
     "python-dotenv>=1.0",
+    "statsmodels>=0.14",
 ]
 
 [project.optional-dependencies]
@@ -85,6 +86,12 @@ addopts = [
 ]
 markers = [
     "integration: tests that touch files or the warehouse (slower)",
+]
+# Deprecations become errors, so library upgrades (e.g. pandas 4) fail loudly in CI
+# instead of silently breaking later.
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::FutureWarning",
 ]
 
 [tool.coverage.run]

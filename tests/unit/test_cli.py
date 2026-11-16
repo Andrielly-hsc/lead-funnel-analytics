@@ -43,8 +43,8 @@ def test_command_is_required() -> None:
 
 def test_unimplemented_command_points_to_its_task(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.ERROR):
-        assert cli.main(["generate"]) == 1
-    assert "F02-T05" in caplog.text
+        assert cli.main(["ingest"]) == 1
+    assert "F03-T02" in caplog.text
 
 
 def test_invalid_configuration_returns_exit_code_2(
@@ -52,7 +52,7 @@ def test_invalid_configuration_returns_exit_code_2(
 ) -> None:
     monkeypatch.setenv("LF_SEED", "not-a-number")
     with caplog.at_level(logging.ERROR):
-        assert cli.main(["generate"]) == 2
+        assert cli.main(["ingest"]) == 2
     assert "Invalid configuration" in caplog.text
 
 
@@ -60,3 +60,15 @@ def test_log_level_flag_overrides_settings(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("LF_LOG_LEVEL", "ERROR")
     cli.main(["--log-level", "debug", "ingest"])
     assert logging.getLogger().level == logging.DEBUG
+
+
+def test_generate_writes_the_landing_zone(tmp_path: Path) -> None:
+    out = tmp_path / "raw"
+    code = cli.main(["generate", "--seed", "3", "--n-leads", "300", "--out-dir", str(out)])
+    assert code == 0
+    for name in ("leads.csv", "interactions.jsonl", "agents.parquet", "_manifest.json"):
+        assert (out / name).exists()
+
+
+def test_generate_rejects_tiny_datasets(tmp_path: Path) -> None:
+    assert cli.main(["generate", "--n-leads", "5", "--out-dir", str(tmp_path)]) == 2

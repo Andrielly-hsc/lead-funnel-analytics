@@ -27,7 +27,8 @@ htmlcov/
 !.env.example
 
 # --- Generated data (reproducible from code) ---
-data/
+# Leading slash = only the top-level folder; a bare "data/" would also hide docs/data/.
+/data/
 *.duckdb
 *.duckdb.wal
 

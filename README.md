@@ -36,6 +36,15 @@ pip install -e . --no-deps             # the package itself, in editable mode
 lead-funnel --version
 ```
 
+### Generate the synthetic data
+
+```bash
+lead-funnel generate --seed 42            # 50 000 leads -> data/raw/
+lead-funnel generate --n-leads 2000 --clean  # small, clean sample
+```
+
+The same seed always produces byte-identical files (see `data/raw/_manifest.json`).
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 
