@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F05 — Data quality & profiling](../features/F05-data-quality-profiling.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 3 h |
 | **Depends on** | F05-T02 |
 | **Branch** | `feat/F05-T03-quality-scorecard` |
@@ -38,4 +38,10 @@ These six dimensions come from DAMA-DMBOK and ISO 8000 — standard vocabulary i
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- `quality/scorecard.py`: 15 metrics over the six DAMA dimensions (completeness, uniqueness, validity, consistency, accuracy, timeliness). Each metric = share of conforming rows with an explicit target; several are measured **on raw and again after the pipeline** to show its effect. `lead-funnel profile` now also writes `reports/quality/scorecard.md` and `reports/figures/quality_scorecard.png`; the CI e2e job runs it.
+- **Accuracy** compares warehouse values with `_truth_leads.parquet` — normally unknowable, measurable here thanks to the synthetic ground truth (`n/a` without it).
+- Seed-42 results: 4 checks fail on raw (duplicate rows 1.96 %, channel spellings 5 %, country spellings 6 %, late records 3 %); the pipeline fixes duplicate rows and both spelling issues (100 % on staging); 2 still fail after the pipeline — *one lead per person* (near-duplicates → F05-T04) and *response time not negative* (clock skew, flagged, KI-02). Response-time accuracy is 99.50 % = exactly the 144 skewed + 95 delayed leads that were injected.
+- **Figure design:** bars show the *defect rate* (lower is better) instead of the conformance rate, because 97 % and 99 % look identical on a 0-100 % axis. Status colours (good/critical) are reserved for pass/fail and always paired with ✓/✗ + PASS/FAIL text; the title states the finding; status labels sit in a fixed column right of the plot after the first render showed them colliding with the target markers.
+- New shared module `analysis/viz.py` (surface, text and grid tokens, colour-blind-safe series order, status colours, `save_fig`), to be extended in F07-T04. Dependency added: `matplotlib`.
+- DuckDB pitfall: prepared parameters (`?`) are not allowed inside `CREATE VIEW`; the truth file is loaded into a temp *table* instead.
+- Tests use a minimal hand-made warehouse with exactly one known defect per rule (fast, no dbt run needed).
