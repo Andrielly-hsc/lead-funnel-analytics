@@ -18,6 +18,36 @@ _See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the planned architecture._
 
 _To be written._
 
+## Getting started
+
+Requirements: Python 3.11+, Git.
+
+```bash
+git clone https://github.com/Andrielly-hsc/lead-funnel-analytics.git
+cd lead-funnel-analytics
+py -3.11 -m venv .venv                 # macOS/Linux: python3.11 -m venv .venv
+.venv\Scriptsctivate                 # macOS/Linux: source .venv/bin/activate
+pip install -r requirements-lock.txt   # exact, pinned versions
+pip install -e . --no-deps             # the package itself, in editable mode
+lead-funnel --version
+```
+
+<details>
+<summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
+
+Python 3.11 on Windows reads the editable-install <code>.pth</code> file with the
+legacy code page, so a non-ASCII folder path breaks <code>import lead_funnel</code>.
+Clone into an ASCII-only path, or set <code>PYTHONUTF8=1</code> in your environment.
+</details>
+
+### Updating dependencies
+
+Edit the ranges in `pyproject.toml`, then regenerate the lock file:
+
+```bash
+pip-compile --extra dev --strip-extras --no-emit-index-url -o requirements-lock.txt pyproject.toml
+```
+
 ## Project documentation
 
 | Document | Purpose |
