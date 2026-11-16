@@ -8,7 +8,14 @@ import pytest
 
 from lead_funnel.config import ConfigError, get_settings
 
-LF_VARS = ("LF_SEED", "LF_SLA_MINUTES", "LF_DATA_DIR", "LF_DB_PATH", "LF_LOG_LEVEL")
+LF_VARS = (
+    "LF_SEED",
+    "LF_SLA_MINUTES",
+    "LF_DATA_DIR",
+    "LF_DB_PATH",
+    "LF_LOG_LEVEL",
+    "LF_REPORTS_DIR",
+)
 
 
 def test_defaults_when_environment_is_empty() -> None:
@@ -17,6 +24,7 @@ def test_defaults_when_environment_is_empty() -> None:
     assert s.db_path == Path("data/warehouse/lead_funnel.duckdb")
     assert s.raw_dir == Path("data/raw")
     assert s.quarantine_dir == Path("data/quarantine")
+    assert s.reports_dir == Path("reports")
     assert (s.seed, s.sla_minutes, s.log_level) == (42, 60, "INFO")
 
 

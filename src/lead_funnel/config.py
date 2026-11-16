@@ -30,6 +30,7 @@ class Settings:
 
     data_dir: Path
     db_path: Path
+    reports_dir: Path
     seed: int
     sla_minutes: int
     log_level: str
@@ -72,6 +73,7 @@ def get_settings(env: Mapping[str, str] | None = None, *, load_env_file: bool = 
 
     data_dir = Path(env.get("LF_DATA_DIR") or "data")
     db_path = Path(env.get("LF_DB_PATH") or data_dir / "warehouse" / "lead_funnel.duckdb")
+    reports_dir = Path(env.get("LF_REPORTS_DIR") or "reports")
 
     log_level = (env.get("LF_LOG_LEVEL") or "INFO").upper()
     if log_level not in _LOG_LEVELS:
@@ -80,6 +82,7 @@ def get_settings(env: Mapping[str, str] | None = None, *, load_env_file: bool = 
     return Settings(
         data_dir=data_dir,
         db_path=db_path,
+        reports_dir=reports_dir,
         seed=_read_int(env, "LF_SEED", 42, minimum=0),
         sla_minutes=_read_int(env, "LF_SLA_MINUTES", 60, minimum=1),
         log_level=log_level,

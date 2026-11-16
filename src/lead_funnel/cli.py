@@ -108,14 +108,32 @@ def _ingest(args: argparse.Namespace, settings: Settings) -> int:
     return 1 if bad else 0
 
 
+# ----------------------------------------------------------------------------------
+# profile
+# ----------------------------------------------------------------------------------
+RAW_TABLES = ("leads", "interactions", "agents", "campaigns", "opportunities")
+
+
+def _profile(args: argparse.Namespace, settings: Settings) -> int:
+    from lead_funnel.ingestion.warehouse import connect
+    from lead_funnel.quality.profiling import write_profiles
+
+    if not settings.db_path.exists():
+        logger.error("Warehouse %s not found. Run `lead-funnel ingest` first.", settings.db_path)
+        return 2
+    out_dir = settings.reports_dir / "quality"
+    with connect(settings.db_path, read_only=True) as con:
+        written = write_profiles(con, [f"raw.{t}" for t in RAW_TABLES], out_dir)
+    logger.info("Wrote %d profiles to %s", len(written), out_dir)
+    return 0
+
+
 COMMANDS: dict[str, Command] = {
     "generate": Command(
         "Generate the synthetic CRM dataset into data/raw/", _generate, _generate_arguments
     ),
     "ingest": Command("Load landing files into the DuckDB raw layer", _ingest, _ingest_arguments),
-    "profile": Command(
-        "Profile raw data and build the quality scorecard", _not_implemented("F05-T01")
-    ),
+    "profile": Command("Profile raw data and build the quality scorecard", _profile),
     "report": Command("Produce analysis figures and statistics", _not_implemented("F08")),
 }
 
