@@ -44,3 +44,31 @@ Repository = "https://github.com/Andrielly-hsc/lead-funnel-analytics"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lead_funnel"]
+
+# ---------------------------------------------------------------------------
+# Ruff: linter + formatter (replaces flake8, isort, black)
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes (unused imports, undefined names)
+    "I",   # isort (import order)
+    "B",   # flake8-bugbear (likely bugs)
+    "UP",  # pyupgrade (modern syntax)
+    "SIM", # flake8-simplify
+    "PD",  # pandas-vet (pandas anti-patterns)
+    "NPY", # numpy-specific rules (e.g. legacy np.random.seed)
+]
+ignore = ["PD901"]  # allow `df` as a variable name in small, local scopes
+
+[tool.ruff.lint.isort]
+known-first-party = ["lead_funnel"]
+
+[tool.ruff.format]
+quote-style = "double"
