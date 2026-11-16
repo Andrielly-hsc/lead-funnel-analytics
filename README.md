@@ -45,6 +45,17 @@ lead-funnel generate --n-leads 2000 --clean  # small, clean sample
 
 The same seed always produces byte-identical files (see `data/raw/_manifest.json`).
 
+### Load the raw layer
+
+```bash
+lead-funnel ingest                 # data/raw/ -> data/warehouse/lead_funnel.duckdb (schema raw)
+lead-funnel ingest                 # again: unchanged files are skipped (idempotent)
+lead-funnel ingest --full-refresh  # reload everything
+```
+
+Files that break the data contract are moved to `data/quarantine/`; every decision is
+recorded in `meta.load_log`.
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 

@@ -112,6 +112,8 @@ python-discovery==1.9.5
     # via virtualenv
 python-dotenv==1.2.4
     # via lead-funnel (pyproject.toml)
+pytz==2026.6
+    # via lead-funnel (pyproject.toml)
 pyyaml==6.0.3
     # via
     #   pre-commit

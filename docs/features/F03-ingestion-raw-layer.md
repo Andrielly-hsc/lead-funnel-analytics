@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | Done |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F02](F02-synthetic-crm-data-generator.md) |
 | **Estimate** | 8 h |
@@ -33,18 +33,18 @@ Load landing files into DuckDB reliably: idempotent, validated, auditable.
 
 ## Acceptance criteria
 
-- [ ] Running `ingest` twice does not duplicate rows
-- [ ] Every raw row has `_loaded_at`, `_source_file`, `_file_hash`
-- [ ] A file violating the contract goes to `data/quarantine/` and the run reports it
+- [x] Running `ingest` twice does not duplicate rows
+- [x] Every raw row has `_loaded_at`, `_source_file`, `_file_hash`
+- [x] A file violating the contract goes to `data/quarantine/` and the run reports it
 
 ## Tasks
 
 | ID | Task | Estimate | Status |
 |---|---|---|---|
-| [F03-T01](../tasks/F03-T01-warehouse-setup.md) | Create the DuckDB warehouse and raw schema | 1 h | To Do |
-| [F03-T02](../tasks/F03-T02-idempotent-loaders.md) | Implement idempotent loaders | 3 h | To Do |
-| [F03-T03](../tasks/F03-T03-contract-validation.md) | Validate files against the data contract | 2 h | To Do |
-| [F03-T04](../tasks/F03-T04-ingestion-tests.md) | Test the ingestion layer | 2 h | To Do |
+| [F03-T01](../tasks/F03-T01-warehouse-setup.md) | Create the DuckDB warehouse and raw schema | 1 h | Done |
+| [F03-T02](../tasks/F03-T02-idempotent-loaders.md) | Implement idempotent loaders | 3 h | Done |
+| [F03-T03](../tasks/F03-T03-contract-validation.md) | Validate files against the data contract | 2 h | Done |
+| [F03-T04](../tasks/F03-T04-ingestion-tests.md) | Test the ingestion layer | 2 h | Done |
 
 ## Syllabus topics covered
 

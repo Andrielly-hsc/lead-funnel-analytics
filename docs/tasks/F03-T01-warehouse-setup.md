@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F03 — Ingestion into the raw layer](../features/F03-ingestion-raw-layer.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | — |
 | **Branch** | `feat/F03-T01-warehouse-setup` |
@@ -33,4 +33,8 @@ A load log is the minimum *audit trail* of a pipeline: what was loaded, when, an
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- `ingestion/warehouse.py`: `connect()` context manager (DuckDB **locks the file** while a connection is open, so it must always be closed), session time zone fixed to UTC, schemas `raw` and `meta`.
+- `meta.load_log` is the audit trail: one row per decision (`success`, `skipped`, `rejected`, `failed`) with run id, file hash, row count, timings and message. A `CHECK` constraint rejects unknown statuses.
+- Raw tables are created from the contract (`schema.py`) with DuckDB types (`TIMESTAMPTZ`, `DATE`, `BIGINT`, …) plus metadata columns `_loaded_at`, `_source_file`, `_file_hash`, `_run_id`. Raw columns are nullable on purpose: raw stores what the source sent; rules are enforced by the contract check and again in dbt.
+- Dependency added: `pytz` — DuckDB needs it to return `TIMESTAMPTZ` values to Python, and pandas 3 no longer installs it.
+- Third-party warning filtered *narrowly* in pytest (by exact message): DuckDB itself calls `DataFrame.drop(inplace=True)`, deprecated in pandas 3.1, when converting `TIMESTAMPTZ` to pandas. Our own deprecations still fail the tests.
