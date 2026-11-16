@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
 from types import MappingProxyType
 
 
@@ -264,3 +264,15 @@ class GeneratorParams:
     conversion: ConversionParams = field(default_factory=ConversionParams)
     activity: ActivityParams = field(default_factory=ActivityParams)
     corruption: CorruptionParams = field(default_factory=CorruptionParams)
+
+
+def to_dict(obj: object) -> object:
+    """JSON-friendly copy of a params dataclass (``dataclasses.asdict`` cannot copy
+    the read-only ``MappingProxyType`` tables)."""
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return {f.name: to_dict(getattr(obj, f.name)) for f in fields(obj)}
+    if isinstance(obj, Mapping):
+        return {k: to_dict(v) for k, v in obj.items()}
+    if isinstance(obj, tuple | list):
+        return [to_dict(v) for v in obj]
+    return obj
