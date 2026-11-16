@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F01 — Project setup & engineering standards](../features/F01-project-setup.md) |
-| **Status** | To Do |
+| **Status** | In Review |
 | **Estimate** | 2 h |
 | **Depends on** | F01-T04 |
 | **Branch** | `feat/F01-T05-ci-pipeline` |
@@ -36,4 +36,9 @@ Continuous Integration proves that the project works on a machine other than you
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- Two jobs: `lint` (pre-commit, the same hooks as locally, so CI and laptop never disagree) and `test` (needs `lint`).
+- `test` runs on **Ubuntu and Windows** (matrix, `fail-fast: false`) because portability is a quality goal and development happens on Windows.
+- `permissions: contents: read` (least privilege) and `concurrency` (cancel outdated runs) are standard hardening/cost practices.
+- pip and pre-commit caches keyed on the lock/config files: a new run only re-downloads when dependencies change.
+- The end-to-end job was moved to F04-T05 as an explicit step, because it needs the dbt project.
+- **Pending:** first run on GitHub (repository not yet published). Mark Done when the badge is green.
