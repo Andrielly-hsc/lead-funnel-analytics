@@ -61,3 +61,18 @@ def test_valid_response_minutes_excludes_unanswered_and_invalid() -> None:
         }
     )
     assert eda.valid_response_minutes(df).tolist() == [10.0, 50_000.0]  # outlier kept
+
+
+def test_distribution_figure(tmp_path) -> None:
+    rng = np.random.default_rng(4)
+    n = 500
+    df = pd.DataFrame(
+        {
+            "is_responded": True,
+            "is_response_time_invalid": False,
+            "minutes_to_first_response": np.exp(rng.normal(4, 1.5, n)),
+            "lead_score": rng.integers(0, 101, n),
+        }
+    )
+    out = eda.plot_distributions(df, tmp_path / "d.png")
+    assert out.exists() and out.stat().st_size > 10_000

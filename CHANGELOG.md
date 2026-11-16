@@ -33,3 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cohorts, nine reproduced SQL pitfalls (`docs/sql_pitfalls.md`) and a performance benchmark of
   formats, partitioning, zone maps and indexes with an annotated execution plan
   (`docs/performance.md`).
+- Exploratory analysis (`analysis/eda.py`, executed notebook `notebooks/01_eda.ipynb`): variable
+  typing, robust descriptive statistics, group and period comparisons with Wilson intervals,
+  outlier rules vs domain rules, missingness mechanisms and the limitations of the source;
+  shared visualisation standards in `analysis/viz.py`.

@@ -11,6 +11,12 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: ["--maxkb=500"]
+        exclude: \.ipynb$
+      # executed notebooks embed their figures; allow them more room, but still a limit
+      - id: check-added-large-files
+        name: check for added large notebooks
+        args: ["--maxkb=1500"]
+        files: \.ipynb$
       - id: mixed-line-ending
         args: ["--fix=lf"]
 
