@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F01 — Project setup & engineering standards](../features/F01-project-setup.md) |
-| **Status** | In Review |
+| **Status** | Done |
 | **Estimate** | 2 h |
 | **Depends on** | F01-T04 |
 | **Branch** | `feat/F01-T05-ci-pipeline` |
@@ -41,4 +41,5 @@ Continuous Integration proves that the project works on a machine other than you
 - `permissions: contents: read` (least privilege) and `concurrency` (cancel outdated runs) are standard hardening/cost practices.
 - pip and pre-commit caches keyed on the lock/config files: a new run only re-downloads when dependencies change.
 - The end-to-end job was moved to F04-T05 as an explicit step, because it needs the dbt project.
-- **Pending:** first run on GitHub (repository not yet published). Mark Done when the badge is green.
+- First run on GitHub ([run 43884505547](https://github.com/Andrielly-hsc/lead-funnel-analytics/actions/runs/43884505547)) was green on all three jobs (lint 29 s, Ubuntu tests 22 s, Windows tests 1 min).
+- That run warned that `actions/cache@v4` targets the deprecated Node.js 20 runtime. All actions were bumped to their current majors (`checkout@v7`, `setup-python@v7`, `cache@v6`) in the first real Pull Request. **Tip:** read CI annotations even when the run is green; deprecations break pipelines months later.
