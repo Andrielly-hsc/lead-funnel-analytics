@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | In Progress |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F04](F04-dimensional-model-dbt.md) |
 | **Estimate** | 8 h |
@@ -40,7 +40,7 @@ Answer the descriptive business questions with well-structured SQL, and show awa
 
 | ID | Task | Estimate | Status |
 |---|---|---|---|
-| [F06-T01](../tasks/F06-T01-funnel-kpi-queries.md) | Write funnel KPI queries | 2 h | To Do |
+| [F06-T01](../tasks/F06-T01-funnel-kpi-queries.md) | Write funnel KPI queries | 2 h | Done |
 | [F06-T02](../tasks/F06-T02-window-functions.md) | Use window functions for rankings and trends | 2 h | To Do |
 | [F06-T03](../tasks/F06-T03-sql-pitfalls.md) | Document common SQL pitfalls | 2 h | To Do |
 | [F06-T04](../tasks/F06-T04-performance-and-plans.md) | Analyse execution plans and performance | 2 h | To Do |
