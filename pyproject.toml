@@ -72,3 +72,29 @@ known-first-party = ["lead_funnel"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+# ---------------------------------------------------------------------------
+# pytest + coverage
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--strict-markers",       # typos in marker names fail instead of being ignored
+    "--cov=lead_funnel",
+    "--cov-report=term-missing",
+]
+markers = [
+    "integration: tests that touch files or the warehouse (slower)",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["lead_funnel"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]
