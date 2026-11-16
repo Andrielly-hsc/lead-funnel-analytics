@@ -87,6 +87,12 @@ addopts = [
 markers = [
     "integration: tests that touch files or the warehouse (slower)",
 ]
+# Deprecations become errors, so library upgrades (e.g. pandas 4) fail loudly in CI
+# instead of silently breaking later.
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::FutureWarning",
+]
 
 [tool.coverage.run]
 branch = true

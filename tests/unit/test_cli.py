@@ -60,3 +60,15 @@ def test_log_level_flag_overrides_settings(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("LF_LOG_LEVEL", "ERROR")
     cli.main(["--log-level", "debug", "ingest"])
     assert logging.getLogger().level == logging.DEBUG
+
+
+def test_generate_writes_the_landing_zone(tmp_path: Path) -> None:
+    out = tmp_path / "raw"
+    code = cli.main(["generate", "--seed", "3", "--n-leads", "300", "--out-dir", str(out)])
+    assert code == 0
+    for name in ("leads.csv", "interactions.jsonl", "agents.parquet", "_manifest.json"):
+        assert (out / name).exists()
+
+
+def test_generate_rejects_tiny_datasets(tmp_path: Path) -> None:
+    assert cli.main(["generate", "--n-leads", "5", "--out-dir", str(tmp_path)]) == 2

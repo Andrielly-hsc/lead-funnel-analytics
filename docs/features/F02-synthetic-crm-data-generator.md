@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress |
+| **Status** | Done |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F01](F01-project-setup.md) |
 | **Estimate** | 17 h |
@@ -33,9 +33,9 @@ Generate a realistic, reproducible CRM dataset with a **known causal effect** of
 
 ## Acceptance criteria
 
-- [ ] Same seed → byte-identical files
-- [ ] Ground-truth effect documented and recoverable by a correctly specified model
-- [ ] Issue rates (duplicates, nulls…) match configuration within ±0.5 pp
+- [x] Same seed → byte-identical files
+- [x] Ground-truth effect documented and recoverable by a correctly specified model
+- [x] Issue rates (duplicates, nulls…) match configuration within ±0.5 pp
 
 ## Tasks
 
@@ -46,7 +46,7 @@ Generate a realistic, reproducible CRM dataset with a **known causal effect** of
 | [F02-T03](../tasks/F02-T03-funnel-simulation.md) | Simulate funnel events with the causal effect | 4 h | Done |
 | [F02-T04](../tasks/F02-T04-inject-quality-issues.md) | Inject realistic data-quality issues | 3 h | Done |
 | [F02-T05](../tasks/F02-T05-export-and-cli.md) | Export files and wire the `generate` CLI | 2 h | Done |
-| [F02-T06](../tasks/F02-T06-generator-tests.md) | Unit-test the generator | 2 h | To Do |
+| [F02-T06](../tasks/F02-T06-generator-tests.md) | Unit-test the generator | 2 h | Done |
 
 ## Syllabus topics covered
 

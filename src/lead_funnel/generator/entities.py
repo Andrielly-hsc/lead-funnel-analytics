@@ -130,7 +130,7 @@ def _arrival_times(gp: GeneratorParams, rng: np.random.Generator) -> pd.Datetime
     """Non-homogeneous arrivals: weekday/weekend, seasonality, growth trend, hour of day."""
     vol = gp.volume
     days = pd.date_range(vol.start_date, periods=vol.n_days, freq="D")
-    dow = np.asarray(days.dayofweek)  # pandas 3 returns an Index; work with plain arrays
+    dow = np.asarray(days.day_of_week)  # pandas 3 returns an Index; work with plain arrays
     month = np.asarray(days.month)
     weekday_factor = np.where(dow < 5, 1.0, np.where(dow == 5, 0.25, 0.15))
     seasonality = 1 + 0.15 * np.sin(2 * np.pi * (month - 3) / 12)
@@ -143,7 +143,7 @@ def _arrival_times(gp: GeneratorParams, rng: np.random.Generator) -> pd.Datetime
     hours = np.arange(24)
     weekday_profile = np.exp(-0.5 * ((hours - 12.5) / 3.2) ** 2) + 0.04
     weekend_profile = np.exp(-0.5 * ((hours - 14.0) / 5.0) ** 2) + 0.08
-    is_weekend = np.asarray(day.dayofweek) >= 5
+    is_weekend = np.asarray(day.day_of_week) >= 5
     hour = np.where(
         is_weekend,
         rng.choice(24, size=vol.n_leads, p=weekend_profile / weekend_profile.sum()),
@@ -270,7 +270,7 @@ def assign_agents(
     """Pick, for each lead, an agent who was in the routed team on the creation date."""
     team = routed_team(leads)
     day = leads["created_at"].dt.tz_convert(timezone).dt.tz_localize(None).dt.normalize()
-    far_future = pd.Timestamp.max.normalize()
+    far_future = pd.Timestamp("2200-01-01")  # representable in every datetime resolution
     valid_to = agents["valid_to"].fillna(far_future)
     # periods in which team membership is constant: [first day, change 1), [change 1, ...)
     boundaries = sorted({day.min()} | {d for d in agents["valid_to"].dropna() if d > day.min()})
