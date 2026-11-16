@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | In Progress |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F01](F01-project-setup.md) |
 | **Estimate** | 17 h |
@@ -41,7 +41,7 @@ Generate a realistic, reproducible CRM dataset with a **known causal effect** of
 
 | ID | Task | Estimate | Status |
 |---|---|---|---|
-| [F02-T01](../tasks/F02-T01-domain-and-data-contract.md) | Define the domain model and data contract | 2 h | To Do |
+| [F02-T01](../tasks/F02-T01-domain-and-data-contract.md) | Define the domain model and data contract | 2 h | Done |
 | [F02-T02](../tasks/F02-T02-generator-core.md) | Implement the generator core (entities) | 4 h | To Do |
 | [F02-T03](../tasks/F02-T03-funnel-simulation.md) | Simulate funnel events with the causal effect | 4 h | To Do |
 | [F02-T04](../tasks/F02-T04-inject-quality-issues.md) | Inject realistic data-quality issues | 3 h | To Do |
