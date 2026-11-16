@@ -35,8 +35,10 @@ Separating *generation* (pure functions) from *writing* (I/O) makes the code tes
 
 ## Notes
 
-- The contract lives in code (`generator/schema.py`). `docs/data/data_dictionary.md` is **generated** from it, and a unit test fails if the two disagree, so the documentation cannot silently go stale ("docs as code").
-- Every parameter of the causal model is in `generator/params.py` as frozen dataclasses. Read-only mappings (`MappingProxyType`) keep them immutable.
-- Causal effect of interest: each doubling of (1 + hours to first response) multiplies the conversion odds by **0.85**. `lead_score` is the confounder: it speeds up responses (−0.35 on log-minutes) and raises conversion (+0.90 on the logit). See `docs/data/causal_dag.md` for the adjustment set and the variables that must *not* be adjusted for (mediators).
-- Decision: timestamps are exported in **UTC**, while business hours are defined in Europe/Berlin local time. This is a realistic pitfall the analysis has to handle (hour-of-day must be converted back).
-- Decision for F04-T04: the agents export already contains **history** (one row per version with `valid_from`/`valid_to`), as an HR system export would. `dim_agent` can be built from it directly; a dbt snapshot is only needed for sources that overwrite their history.
+- Every function is pure: parameters + `numpy.random.Generator` in, DataFrame out. The orchestrator (F02-T05) gives each stage its **own child generator** via `SeedSequence(seed).spawn(n)`, so changing one stage never changes the random draws of another stage.
+- Arrivals: weekday/weekend factor × seasonality × growth trend, and hour-of-day profiles drawn in **local time** (Europe/Berlin), then converted to UTC. DST gaps and overlaps are resolved explicitly (`nonexistent="shift_forward"`, `ambiguous=False`).
+- Routing rule (`routed_team`): partner referrals → partner team; 1000+ employees → enterprise; DACH → inbound_dach; otherwise inbound_international. The agent is drawn among members of that team **on the creation date** (point-in-time).
+- Fake PII: e-mails use the reserved `.example` top-level domain (RFC 2606), so they can never belong to a real person.
+- Sanity check with seed 42 and 50 000 leads (< 1 s): 7.3 % of leads arrive at weekends and 77 % during business hours; mean score from 42 (social) to 59 (partner); 4 agents change team; every lead has an owner.
+- **pandas 3 pitfall:** `DatetimeIndex.dayofweek` returns an `Index`, not a NumPy array (`.sum()` fails). Converted explicitly with `np.asarray`. `Series.dt.dayofweek` is deprecated in favour of `day_of_week`.
+- Lint (`PD008`) flagged `.at[]` writes inside a loop; the team changes are now applied to the list of row dicts *before* building the DataFrame, which is simpler and faster.
