@@ -28,7 +28,7 @@ from pathlib import Path
 import duckdb
 
 from lead_funnel.generator.schema import ENTITIES, Entity
-from lead_funnel.ingestion import warehouse
+from lead_funnel.ingestion import contracts, warehouse
 from lead_funnel.ingestion.warehouse import DUCKDB_TYPES
 
 logger = logging.getLogger(__name__)
@@ -68,30 +68,47 @@ def discover(raw_dir: Path) -> list[tuple[Entity, Path]]:
     return found
 
 
-def _columns_literal(entity: Entity) -> str:
-    """DuckDB struct literal ``{'col': 'TYPE', ...}`` built from the contract."""
-    return "{" + ", ".join(f"'{c.name}': '{DUCKDB_TYPES[c.type]}'" for c in entity.columns) + "}"
+def _columns_literal(entity: Entity, present: list[str] | None = None) -> str:
+    """DuckDB struct literal ``{'col': 'TYPE', ...}``.
+
+    With ``present`` (the CSV header), the struct follows the file's column order;
+    contract columns get their contract type and unknown columns are read as VARCHAR.
+    """
+    types = {c.name: DUCKDB_TYPES[c.type] for c in entity.columns}
+    names = present if present is not None else entity.column_names
+    return "{" + ", ".join(f"'{n}': '{types.get(n, 'VARCHAR')}'" for n in names) + "}"
 
 
-def select_from_file(entity: Entity) -> str:
+def select_from_file(entity: Entity, present: list[str] | None = None) -> str:
     """SQL that reads a landing file with **explicit types** (no auto-detection).
 
     Auto-detection guesses types from a sample and can silently change from one file
     to the next (e.g. a column of IDs becoming integers). The contract decides.
+    The result always has exactly the contract columns, in contract order.
     The file path is passed as a bound parameter (``?``), never concatenated.
     """
-    cols = _columns_literal(entity)
+    names = ", ".join(entity.column_names)
     if entity.format == "csv":
+        cols = _columns_literal(entity, present)
         return (
-            "select * from read_csv(?, header = true, auto_detect = false, delim = ',', "
-            f"quote = '\"', escape = '\"', nullstr = '', columns = {cols})"
+            f"select {names} from read_csv(?, header = true, auto_detect = false, "
+            f"delim = ',', quote = '\"', escape = '\"', nullstr = '', columns = {cols})"
         )
     if entity.format == "jsonl":
-        return f"select * from read_json(?, format = 'newline_delimited', columns = {cols})"
+        cols = _columns_literal(entity)
+        return f"select {names} from read_json(?, format = 'newline_delimited', columns = {cols})"
     casts = ", ".join(
         f"cast({c.name} as {DUCKDB_TYPES[c.type]}) as {c.name}" for c in entity.columns
     )
     return f"select {casts} from read_parquet(?)"
+
+
+def quarantine(path: Path, quarantine_dir: Path, run_id: str) -> Path:
+    """Move a rejected file out of the landing zone, keeping it for investigation."""
+    quarantine_dir.mkdir(parents=True, exist_ok=True)
+    target = quarantine_dir / f"{run_id}__{path.name}"
+    path.replace(target)
+    return target
 
 
 def _log(
@@ -127,8 +144,13 @@ def load_file(
     loaded_at: datetime,
     *,
     force: bool = False,
+    quarantine_dir: Path | None = None,
 ) -> LoadResult:
-    """Replace ``raw.<entity>`` with the content of ``path`` in one transaction."""
+    """Validate ``path`` against the contract and replace ``raw.<entity>`` in one transaction.
+
+    * contract violation -> ``rejected``: rollback, file moved to ``quarantine_dir``
+    * any other database error -> ``failed``: rollback, file left in place for a retry
+    """
     started_at = datetime.now(UTC)
     file_hash = file_sha256(path)
     warehouse.ensure_raw_table(con, entity)
@@ -140,9 +162,19 @@ def load_file(
 
     con.begin()
     try:
-        con.execute(
-            f"create or replace temp table _incoming as {select_from_file(entity)}", [str(path)]
-        )
+        present = contracts.file_columns(con, entity, path)
+        contracts.check_columns(entity, present, path.name)
+        try:
+            con.execute(
+                f"create or replace temp table _incoming as {select_from_file(entity, present)}",
+                [str(path)],
+            )
+        except (duckdb.ConversionException, duckdb.InvalidInputException) as exc:
+            # values that cannot be cast to the contract type are a contract violation
+            first_line = str(exc).splitlines()[0][:300]
+            raise contracts.DataContractError(entity.name, path.name, [first_line]) from exc
+        contracts.check_rows(con, entity, "_incoming", path.name)
+
         con.execute(f"delete from raw.{entity.name}")
         con.execute(
             f"insert into raw.{entity.name} select *, ?, ?, ?, ? from _incoming",
@@ -152,6 +184,15 @@ def load_file(
         result = LoadResult(entity.name, path.name, "success", rows)
         _log(con, run_id, entity, path, file_hash, result, started_at)
         con.commit()
+    except contracts.DataContractError as exc:
+        con.rollback()
+        message = "; ".join(exc.problems)
+        if quarantine_dir is not None:
+            target = quarantine(path, quarantine_dir, run_id)
+            message += f" (quarantined as {target.name})"
+        result = LoadResult(entity.name, path.name, "rejected", message=message)
+        _log(con, run_id, entity, path, file_hash, result, started_at)
+        logger.error("Rejected %s: %s", path.name, message)
     except duckdb.Error as exc:
         con.rollback()
         result = LoadResult(entity.name, path.name, "failed", message=str(exc).splitlines()[0])
@@ -162,15 +203,33 @@ def load_file(
     return result
 
 
-def ingest(raw_dir: Path, db_path: Path, *, full_refresh: bool = False) -> list[LoadResult]:
-    """Load every landing file in ``raw_dir`` into the warehouse at ``db_path``."""
+def ingest(
+    raw_dir: Path,
+    db_path: Path,
+    *,
+    full_refresh: bool = False,
+    quarantine_dir: Path | None = None,
+) -> list[LoadResult]:
+    """Load every landing file in ``raw_dir`` into the warehouse at ``db_path``.
+
+    Rejected files go to ``quarantine_dir`` (default: ``<raw_dir>/../quarantine``).
+    """
+    quarantine_dir = quarantine_dir or raw_dir.parent / "quarantine"
     run_id = uuid.uuid4().hex[:12]
     loaded_at = datetime.now(UTC)
     results = []
     with warehouse.connect(db_path) as con:
         warehouse.ensure_schemas(con)
         for entity, path in discover(raw_dir):
-            result = load_file(con, entity, path, run_id, loaded_at, force=full_refresh)
+            result = load_file(
+                con,
+                entity,
+                path,
+                run_id,
+                loaded_at,
+                force=full_refresh,
+                quarantine_dir=quarantine_dir,
+            )
             logger.info(
                 "%-14s %-9s %8d rows  %s",
                 entity.name,

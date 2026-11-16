@@ -91,7 +91,12 @@ def _ingest(args: argparse.Namespace, settings: Settings) -> int:
     if not raw_dir.is_dir():
         logger.error("Landing folder %s does not exist. Run `lead-funnel generate` first.", raw_dir)
         return 2
-    results = ingest(raw_dir, settings.db_path, full_refresh=args.full_refresh)
+    results = ingest(
+        raw_dir,
+        settings.db_path,
+        full_refresh=args.full_refresh,
+        quarantine_dir=settings.quarantine_dir,
+    )
     bad = [r for r in results if r.status in ("failed", "rejected")]
     logger.info(
         "Ingestion finished: %d loaded, %d skipped, %d rejected/failed -> %s",
