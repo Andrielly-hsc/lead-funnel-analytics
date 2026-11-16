@@ -1,0 +1,104 @@
+version: 2
+
+models:
+  - name: fct_leads
+    description: >
+      **Grain: one row per lead** (accumulating snapshot). Milestones of the lead
+      lifecycle — creation, first response, opportunity — are columns, together with
+      the SLA flags and activity counts. This is the main table for funnel, SLA and
+      conversion analysis. Near-duplicate leads are still separate rows (see F05).
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('stg_crm__leads')
+    columns:
+      - name: lead_key
+        description: Surrogate key (hash of `lead_id`).
+        data_tests: [unique, not_null]
+      - name: lead_id
+        description: Natural key from the CRM.
+        data_tests: [unique, not_null]
+      - name: created_date_key
+        description: Local creation date as `YYYYMMDD`.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: channel_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_channel')
+                field: channel_key
+      - name: lead_source_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_lead_source')
+                field: lead_source_key
+      - name: campaign_key
+        description: "'-1' = no campaign."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_campaign')
+                field: campaign_key
+      - name: owner_agent_key
+        description: Version of the owning agent valid on the creation date (point-in-time).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_agent')
+                field: agent_key
+      - name: minutes_to_first_response
+        description: Null when never answered.
+      - name: is_sla_met
+        description: See `int_leads__first_response`. Null only for invalid response times.
+      - name: is_converted
+        data_tests: [not_null]
+      - name: opportunity_amount_eur
+        description: Expected deal value; null when not converted.
+      - name: days_to_opportunity
+        description: Days from creation to opportunity; null when not converted.
+
+  - name: fct_interactions
+    description: "**Grain: one row per interaction** (transaction fact)."
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          arguments:
+            compare_model: ref('stg_crm__interactions')
+    columns:
+      - name: interaction_key
+        data_tests: [unique, not_null]
+      - name: lead_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_leads')
+                field: lead_key
+      - name: agent_key
+        description: Version of the agent valid on the event date (point-in-time).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_agent')
+                field: agent_key
+      - name: event_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: is_recorded_late
+        description: Stored more than `var('late_record_hours')` after it happened (timeliness).
+      - name: is_first_touch
+        description: This interaction is the lead's first response.
