@@ -15,3 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pytest scaffolding with branch coverage and a temporary DuckDB fixture.
 - GitHub Actions CI (lint + tests on Ubuntu and Windows) and pull request template.
 - Configuration from environment variables / `.env`, logging setup and the `lead-funnel` CLI skeleton.
+- Synthetic CRM generator (`lead-funnel generate`): data contract, causal model with a known effect of
+  response time on conversion, realistic data-quality issues, CSV/JSONL/Parquet landing zone with
+  ground truth and manifest.
