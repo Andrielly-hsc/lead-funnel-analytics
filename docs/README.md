@@ -26,7 +26,7 @@ each in its own Markdown file, versioned with the code.
 | [F04](features/F04-dimensional-model-dbt.md) | Dimensional model with dbt | Must | F03 | 6 | 13 h | Done |
 | [F05](features/F05-data-quality-profiling.md) | Data quality & profiling | Must | F03, F04 | 4 | 10 h | Done |
 | [F06](features/F06-analytical-sql.md) | Analytical SQL | Must | F04 | 4 | 8 h | Done |
-| [F07](features/F07-exploratory-analysis.md) | Exploratory & descriptive analysis | Must | F04 | 4 | 7 h | In Progress |
+| [F07](features/F07-exploratory-analysis.md) | Exploratory & descriptive analysis | Must | F04 | 4 | 7 h | Done |
 | [F08](features/F08-statistical-inference.md) | Statistical inference & relationships | Must | F07 | 6 | 12 h | To Do |
 | [F09](features/F09-dashboard.md) | KPI dashboard | Should | F06, F08 | 4 | 8 h | To Do |
 | [F10](features/F10-case-study-and-release.md) | Case study documentation & release | Must | F05, F08, F09 | 4 | 6 h | To Do |
