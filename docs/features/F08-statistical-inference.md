@@ -44,7 +44,7 @@ Test the response-time hypothesis rigorously, quantify relationships, and distin
 | [F08-T01](../tasks/F08-T01-analysis-plan.md) | Write the analysis plan (pre-registration) | 1 h | Done |
 | [F08-T02](../tasks/F08-T02-proportion-tests-and-ci.md) | Test conversion difference with CIs and effect sizes | 2 h | Done |
 | [F08-T03](../tasks/F08-T03-correlation-and-anova.md) | Analyse correlations and ANOVA | 2 h | Done |
-| [F08-T04](../tasks/F08-T04-logistic-regression-adjustment.md) | Estimate adjusted effect with logistic regression | 3 h | To Do |
+| [F08-T04](../tasks/F08-T04-logistic-regression-adjustment.md) | Estimate adjusted effect with logistic regression | 3 h | Done |
 | [F08-T05](../tasks/F08-T05-causality-and-limitations.md) | Write the causal reasoning and limitations section | 2 h | To Do |
 | [F08-T06](../tasks/F08-T06-multiple-testing-robustness.md) | Correct for multiple testing and run robustness checks | 2 h | To Do |
 
