@@ -106,3 +106,5 @@ model.
 | # | Change | Reason | Impact on results |
 |---|---|---|---|
 | D1 | Reference category of `company_size_band` set to `small` instead of the alphabetical default (`enterprise`). | The default reference holds only 3 % of leads, which inflated the VIFs of the other size dummies (up to 8) and made the diagnostics misleading. | None on fit, predictions or the response-time coefficient — a reparametrisation of the same model. |
+| D2 | §6 said "17 tests"; the family has **19** (4 channels + 6 sources + 4 teams + 5 size bands incl. `unknown`). | Counting error in the plan; the segments themselves are unchanged. | Corrections are applied to all 19 tests (slightly more conservative than planned). |
+| D3 | Execution order: robustness (T06) was run before the written causal discussion (T05). | The discussion has to explain the robustness results (seed-42 CIs narrowly missing the truth). | None on any estimate. |
