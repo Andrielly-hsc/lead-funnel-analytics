@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F02 — Synthetic CRM data generator](../features/F02-synthetic-crm-data-generator.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 4 h |
 | **Depends on** | F02-T01 |
 | **Branch** | `feat/F02-T02-generator-core` |
@@ -35,4 +35,8 @@ Separating *generation* (pure functions) from *writing* (I/O) makes the code tes
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- The contract lives in code (`generator/schema.py`). `docs/data/data_dictionary.md` is **generated** from it, and a unit test fails if the two disagree, so the documentation cannot silently go stale ("docs as code").
+- Every parameter of the causal model is in `generator/params.py` as frozen dataclasses. Read-only mappings (`MappingProxyType`) keep them immutable.
+- Causal effect of interest: each doubling of (1 + hours to first response) multiplies the conversion odds by **0.85**. `lead_score` is the confounder: it speeds up responses (−0.35 on log-minutes) and raises conversion (+0.90 on the logit). See `docs/data/causal_dag.md` for the adjustment set and the variables that must *not* be adjusted for (mediators).
+- Decision: timestamps are exported in **UTC**, while business hours are defined in Europe/Berlin local time. This is a realistic pitfall the analysis has to handle (hour-of-day must be converted back).
+- Decision for F04-T04: the agents export already contains **history** (one row per version with `valid_from`/`valid_to`), as an HR system export would. `dim_agent` can be built from it directly; a dbt snapshot is only needed for sources that overwrite their history.
