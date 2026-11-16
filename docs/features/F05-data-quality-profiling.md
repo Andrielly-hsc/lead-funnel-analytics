@@ -40,7 +40,7 @@ Measure data quality explicitly across the six standard dimensions and handle du
 | ID | Task | Estimate | Status |
 |---|---|---|---|
 | [F05-T01](../tasks/F05-T01-profiling.md) | Profile raw data | 2 h | Done |
-| [F05-T02](../tasks/F05-T02-dbt-tests.md) | Add generic and singular dbt tests | 2 h | To Do |
+| [F05-T02](../tasks/F05-T02-dbt-tests.md) | Add generic and singular dbt tests | 2 h | Done |
 | [F05-T03](../tasks/F05-T03-quality-scorecard.md) | Build the six-dimension quality scorecard | 3 h | To Do |
 | [F05-T04](../tasks/F05-T04-dedup-and-linkage.md) | Detect near-duplicates and assess false-match risk | 3 h | To Do |
 
