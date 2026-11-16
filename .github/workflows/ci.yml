@@ -91,3 +91,5 @@ jobs:
         run: lead-funnel profile
       - name: Run every analytical SQL query
         run: python scripts/run_sql.py --check
+      - name: Execute the notebooks top to bottom
+        run: python scripts/run_notebooks.py --check

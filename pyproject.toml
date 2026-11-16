@@ -20,6 +20,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "dbt-core>=1.9,<2",  # matches require-dbt-version in dbt_project.yml
     "dbt-duckdb>=1.9",
     "duckdb>=1.1",
     "matplotlib>=3.9",
@@ -34,6 +35,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "ipykernel>=6.29",
+    "nbclient>=0.10",
+    "nbformat>=5.10",
     "pip-tools>=7.4",
     "pre-commit>=4.0",
     "pytest>=8.3",
