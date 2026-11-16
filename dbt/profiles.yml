@@ -1,0 +1,12 @@
+# Connection profile. No secrets here: values come from environment variables
+# with safe defaults, so the same file works locally and in CI.
+lead_funnel:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # relative to the folder dbt is run from (the repository root)
+      path: "{{ env_var('LF_DB_PATH', 'data/warehouse/lead_funnel.duckdb') }}"
+      threads: 4
+      settings:
+        TimeZone: UTC

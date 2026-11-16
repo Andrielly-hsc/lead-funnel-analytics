@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | In Progress |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F03](F03-ingestion-raw-layer.md) |
 | **Estimate** | 13 h |
@@ -41,7 +41,7 @@ Transform raw data into a tested, documented star schema following dbt and Kimba
 
 | ID | Task | Estimate | Status |
 |---|---|---|---|
-| [F04-T01](../tasks/F04-T01-dbt-project-setup.md) | Set up the dbt project | 1 h | To Do |
+| [F04-T01](../tasks/F04-T01-dbt-project-setup.md) | Set up the dbt project | 1 h | Done |
 | [F04-T02](../tasks/F04-T02-staging-models.md) | Build staging models | 3 h | To Do |
 | [F04-T03](../tasks/F04-T03-intermediate-models.md) | Build intermediate models | 2 h | To Do |
 | [F04-T04](../tasks/F04-T04-dimension-models.md) | Build dimension models (incl. SCD Type 2) | 3 h | To Do |

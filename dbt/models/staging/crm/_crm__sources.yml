@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: crm
+    description: >
+      Snapshot exports of the CRM, loaded as-is by `lead-funnel ingest` into the raw
+      schema. Each table carries load metadata: `_loaded_at`, `_source_file`,
+      `_file_hash`, `_run_id`. Data contract: `docs/data/data_dictionary.md`.
+    schema: raw
+    loaded_at_field: _loaded_at
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 72, period: hour}
+    tables:
+      - name: leads
+        description: One row per lead as exported (may contain exact and near duplicates).
+      - name: interactions
+        description: One row per outbound contact attempt by an agent.
+      - name: agents
+        description: One row per agent version (team history, SCD2-shaped).
+      - name: campaigns
+        description: One row per marketing campaign.
+      - name: opportunities
+        description: One row per opportunity created from a converted lead.
