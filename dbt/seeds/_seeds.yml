@@ -1,0 +1,31 @@
+version: 2
+
+seeds:
+  - name: channel_mapping
+    description: >
+      Maps every known spelling of a channel (lower-cased and trimmed) to its canonical
+      code. A new spelling in the source makes the `accepted_values` test on
+      `stg_crm__leads.channel` fail, which is the signal to extend this file.
+    config:
+      column_types: {raw_value: varchar, channel: varchar}
+    columns:
+      - name: raw_value
+        description: Source spelling, lower-cased and trimmed.
+        data_tests: [unique, not_null]
+      - name: channel
+        description: Canonical channel code.
+        data_tests: [not_null]
+
+  - name: country_mapping
+    description: >
+      Maps country names, ISO alpha-3 and alpha-2 codes (lower-cased and trimmed)
+      to ISO 3166-1 alpha-2 codes.
+    config:
+      column_types: {raw_value: varchar, country_code: varchar}
+    columns:
+      - name: raw_value
+        description: Source spelling, lower-cased and trimmed.
+        data_tests: [unique, not_null]
+      - name: country_code
+        description: ISO 3166-1 alpha-2 code.
+        data_tests: [not_null]

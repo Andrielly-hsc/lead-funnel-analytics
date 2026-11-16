@@ -1,0 +1,173 @@
+version: 2
+
+models:
+  - name: stg_crm__leads
+    description: >
+      **Grain: one row per `lead_id`.** Leads cleaned and standardised: exact
+      duplicates removed, channel and country spellings mapped to canonical codes,
+      company size banded, timestamps also given in local time. E-mail and phone are
+      **pseudonymised** (salted SHA-256) and the raw values are dropped (data
+      minimisation, GDPR art. 5(1)(c)). Near-duplicates (same person under a new
+      `lead_id`) are intentionally kept; see F05.
+    columns:
+      - name: lead_id
+        description: CRM identifier of the lead.
+        data_tests: [unique, not_null]
+      - name: created_at
+        description: Creation time (UTC).
+        data_tests: [not_null]
+      - name: created_at_local
+        description: Creation time in the organisation's local time zone (`var('local_timezone')`).
+      - name: channel
+        description: Canonical channel code (see seed `channel_mapping`).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [web_form, email, phone, partner_referral]
+      - name: lead_source
+        description: Marketing source (renamed from `source`, a reserved SQL keyword).
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [organic_search, paid_search, social, event, partner, direct]
+      - name: campaign_id
+        description: Campaign active when the lead was created (paid, social or event sources).
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_crm__campaigns')
+                field: campaign_id
+      - name: country_code
+        description: ISO 3166-1 alpha-2 code (see seed `country_mapping`).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [DE, AT, CH, NL, FR, IT, ES, PL, BE, DK]
+      - name: industry
+        description: Industry of the company. Missing completely at random in about 8 % of leads.
+      - name: company_name
+        description: Company name (fictional). Business data, not personal data.
+      - name: company_size
+        description: Number of employees. Missing more often for web-form leads (optional field).
+      - name: company_size_band
+        description: "`small` (1-49), `medium` (50-249), `large` (250-999), `enterprise` (1000+) or `unknown`."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [small, medium, large, enterprise, unknown]
+      - name: lead_score
+        description: Marketing lead score, 0-100.
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: email_hash
+        description: Salted SHA-256 of the lower-cased e-mail. Joinable, not reversible.
+        data_tests: [not_null]
+      - name: phone_hash
+        description: Salted SHA-256 of the phone number reduced to digits without the "00" prefix.
+        data_tests: [not_null]
+      - name: owner_agent_id
+        description: Agent the lead was routed to.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_crm__agents')
+                field: agent_id
+
+  - name: stg_crm__interactions
+    description: "**Grain: one row per `interaction_id`.** Outbound contacts by agents."
+    columns:
+      - name: interaction_id
+        data_tests: [unique, not_null]
+      - name: lead_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_crm__leads')
+                field: lead_id
+      - name: agent_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_crm__agents')
+                field: agent_id
+      - name: event_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [call, email, meeting]
+      - name: occurred_at
+        description: When the contact happened (UTC).
+        data_tests: [not_null]
+      - name: recorded_at
+        description: When the CRM stored the event (UTC).
+      - name: recording_lag_minutes
+        description: Minutes between occurrence and recording (timeliness of the CRM itself).
+
+  - name: stg_crm__agents
+    description: >
+      **Grain: one row per agent version** (`agent_id`, `valid_from`). The HR export
+      already keeps history, so this is SCD type 2 shaped: `valid_from` inclusive,
+      `valid_to` exclusive, `is_current` for the open version.
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [agent_id, valid_from]
+    columns:
+      - name: agent_id
+        data_tests: [not_null]
+      - name: team
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [inbound_dach, inbound_international, partner, enterprise]
+      - name: seniority
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [junior, mid, senior]
+
+  - name: stg_crm__campaigns
+    description: "**Grain: one row per `campaign_id`.**"
+    columns:
+      - name: campaign_id
+        data_tests: [unique, not_null]
+      - name: lead_source
+        description: Marketing source the campaign belongs to.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [paid_search, social, event]
+      - name: budget_eur
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+  - name: stg_crm__opportunities
+    description: "**Grain: one row per `opportunity_id`** (at most one per lead)."
+    columns:
+      - name: opportunity_id
+        data_tests: [unique, not_null]
+      - name: lead_id
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_crm__leads')
+                field: lead_id
+      - name: amount_eur
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                inclusive: false
