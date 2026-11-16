@@ -26,3 +26,9 @@ line_position = trailing
 
 [sqlfluff:templater:jinja]
 apply_dbt_builtins = true
+# project macros (e.g. pseudonymise) so models using them can be parsed
+load_macros_from_path = dbt/macros
+
+# Lint-time stand-ins for dbt functions the jinja templater does not provide.
+[sqlfluff:templater:jinja:macros]
+env_var = {% macro env_var(name, default='') %}{{ default }}{% endmacro %}
