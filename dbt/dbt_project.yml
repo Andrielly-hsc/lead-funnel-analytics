@@ -46,4 +46,6 @@ seeds:
 
 data_tests:
   lead_funnel:
+    # failing rows of tests with store_failures=true are kept here for inspection
+    +schema: audit
     +store_failures: false
