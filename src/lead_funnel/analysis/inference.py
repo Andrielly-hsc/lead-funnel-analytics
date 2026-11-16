@@ -9,6 +9,7 @@ minimum effect of interest (+2 percentage points).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -161,3 +162,174 @@ def proportion_test_table(results: dict[str, ProportionTest]) -> pd.DataFrame:
             }
         )
     return pd.DataFrame(rows)
+
+
+# ----------------------------------------------------------------------------------
+# Correlation
+# ----------------------------------------------------------------------------------
+def correlation_table(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    """Pearson and Spearman correlation for every pair of columns (pairwise complete).
+
+    Pearson measures *linear* association and is dominated by extreme values; Spearman
+    correlates ranks, so it captures any monotonic relation and is robust to skew and
+    outliers — the right default for variables like response time.
+    """
+    rows = []
+    for i, a in enumerate(columns):
+        for b in columns[i + 1 :]:
+            pair = df[[a, b]].dropna()
+            r, r_p = stats.pearsonr(pair[a], pair[b])
+            rho, rho_p = stats.spearmanr(pair[a], pair[b])
+            rows.append(
+                {
+                    "x": a,
+                    "y": b,
+                    "n": len(pair),
+                    "pearson_r": float(r),
+                    "pearson_p": float(r_p),
+                    "spearman_rho": float(rho),
+                    "spearman_p": float(rho_p),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+# ----------------------------------------------------------------------------------
+# One-way ANOVA with assumption checks
+# ----------------------------------------------------------------------------------
+@dataclass(frozen=True)
+class AnovaResult:
+    groups: pd.DataFrame  # n, mean, sd, median per group
+    shapiro_p: dict[str, float]  # normality, on a random subsample per group
+    levene_p: float  # equal variances (Brown-Forsythe: centred on the median)
+    f: float
+    f_p: float
+    welch_f: float
+    welch_p: float
+    kruskal_h: float
+    kruskal_p: float
+    eta_squared: float
+    omega_squared: float
+    tukey: pd.DataFrame
+
+    @property
+    def recommended_test(self) -> str:
+        """Welch when variances differ; it does not assume equal variances."""
+        return "welch" if self.levene_p < ALPHA else "classic"
+
+    @property
+    def recommended_p(self) -> float:
+        return self.welch_p if self.recommended_test == "welch" else self.f_p
+
+
+def one_way_anova(
+    values: pd.Series, groups: pd.Series, *, shapiro_n: int = 500, seed: int = 42
+) -> AnovaResult:
+    """Classic and Welch ANOVA, Kruskal-Wallis, effect sizes and Tukey HSD post-hoc.
+
+    Shapiro-Wilk runs on a random subsample of ``shapiro_n`` per group: on tens of
+    thousands of points it rejects normality for negligible deviations, which is why
+    Q-Q plots (``plot_qq``) are the primary check and the test only a supplement.
+    """
+    from statsmodels.stats.multicomp import pairwise_tukeyhsd
+    from statsmodels.stats.oneway import anova_oneway
+
+    data = pd.DataFrame({"value": values, "group": groups}).dropna()
+    samples = {g: s["value"].to_numpy() for g, s in data.groupby("group")}
+    rng = np.random.default_rng(seed)
+    shapiro = {
+        g: float(stats.shapiro(rng.choice(v, size=min(shapiro_n, len(v)), replace=False))[1])
+        for g, v in samples.items()
+    }
+    f, f_p = stats.f_oneway(*samples.values())
+    welch = anova_oneway(data["value"], data["group"], use_var="unequal")
+    h, h_p = stats.kruskal(*samples.values())
+
+    grand = data["value"].mean()
+    ss_between = sum(len(v) * (v.mean() - grand) ** 2 for v in samples.values())
+    ss_total = float(((data["value"] - grand) ** 2).sum())
+    k, n = len(samples), len(data)
+    ms_within = (ss_total - ss_between) / (n - k)
+    tukey = pairwise_tukeyhsd(data["value"], data["group"], alpha=ALPHA)
+    tukey_df = pd.DataFrame(tukey.summary().data[1:], columns=tukey.summary().data[0])
+
+    return AnovaResult(
+        groups=data.groupby("group")["value"].agg(["count", "mean", "std", "median"]),
+        shapiro_p=shapiro,
+        levene_p=float(stats.levene(*samples.values(), center="median")[1]),
+        f=float(f),
+        f_p=float(f_p),
+        welch_f=float(welch.statistic),
+        welch_p=float(welch.pvalue),
+        kruskal_h=float(h),
+        kruskal_p=float(h_p),
+        eta_squared=ss_between / ss_total,
+        omega_squared=(ss_between - (k - 1) * ms_within) / (ss_total + ms_within),
+        tukey=tukey_df,
+    )
+
+
+def anova_summary(results: dict[str, AnovaResult]) -> pd.DataFrame:
+    rows = []
+    for name, r in results.items():
+        rows.append(
+            {
+                "hypothesis": name,
+                "n": int(r.groups["count"].sum()),
+                "levene_p": r.levene_p,
+                "min_shapiro_p": min(r.shapiro_p.values()),
+                "anova_F": r.f,
+                "anova_p": r.f_p,
+                "welch_F": r.welch_f,
+                "welch_p": r.welch_p,
+                "kruskal_p": r.kruskal_p,
+                "eta_sq": r.eta_squared,
+                "omega_sq": r.omega_squared,
+                "test_used": r.recommended_test,
+                "reject_H0": r.recommended_p < ALPHA,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+CALLS_SQL = """
+select c.channel, i.duration_s
+from marts.fct_interactions as i
+inner join marts.fct_leads as f on i.lead_key = f.lead_key
+inner join marts.dim_channel as c on f.channel_key = c.channel_key
+where i.event_type = 'call' and not f.is_probable_duplicate
+"""
+
+
+def load_calls(con) -> pd.DataFrame:
+    """Call durations with the lead's channel (for H2b)."""
+    return con.execute(CALLS_SQL).df()
+
+
+def plot_qq(values: pd.Series, groups: pd.Series, path: Path, *, title: str) -> Path:
+    """Q-Q plots of within-group residuals: raw scale vs log10 scale, side by side."""
+    from lead_funnel.analysis import viz
+
+    viz.apply_style()
+    data = pd.DataFrame({"v": values, "g": groups}).dropna()
+    data = data[data["v"] > 0]
+    fig, axes = viz.plt.subplots(1, 2, figsize=(10, 4.2))
+    for ax, (label, series) in zip(
+        axes, (("raw scale", data["v"]), ("log10 scale", np.log10(data["v"]))), strict=True
+    ):
+        resid = series - series.groupby(data["g"]).transform("mean")
+        z = (resid - resid.mean()) / resid.std()
+        sample = np.sort(z.sample(min(len(z), 3_000), random_state=0).to_numpy())
+        theoretical = stats.norm.ppf((np.arange(1, len(sample) + 1) - 0.5) / len(sample))
+        ax.scatter(theoretical, sample, s=6, color=viz.SERIES[0], alpha=0.5, zorder=2)
+        lim = max(abs(theoretical).max(), 4)
+        ax.plot([-lim, lim], [-lim, lim], color=viz.TEXT_PRIMARY, linewidth=1, linestyle="--")
+        ax.set_ylim(-4.5, max(4.5, float(sample.max()) * 1.05))
+        ax.set_xlabel("Theoretical normal quantiles")
+        ax.set_ylabel("Standardised residuals")
+        skew = float(stats.skew(resid))
+        ax.set_title(f"{label}: skewness {skew:.1f}")
+    fig.suptitle(title, x=0.01, ha="left", fontweight="bold", fontsize=12)
+    fig.tight_layout()
+    viz.caption(fig, "Residuals = value − group mean; random sample of 3 000 points shown.")
+    return viz.save_fig(fig, path)
