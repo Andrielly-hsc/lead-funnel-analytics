@@ -342,6 +342,7 @@ ruff==0.17.5
 scipy==1.17.1
     # via
     #   formulaic
+    #   lead-funnel (pyproject.toml)
     #   statsmodels
 six==1.17.0
     # via python-dateutil

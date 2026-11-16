@@ -29,6 +29,7 @@ dependencies = [
     "pyarrow>=17.0",
     "python-dotenv>=1.0",
     "rapidfuzz>=3.9",
+    "scipy>=1.13",
     "pytz>=2024.1",  # needed by duckdb to return TIMESTAMPTZ values to Python
     "statsmodels>=0.14",
 ]
