@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
+import json
 import logging
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -118,6 +119,7 @@ def _profile(args: argparse.Namespace, settings: Settings) -> int:
     import duckdb
 
     from lead_funnel.ingestion.warehouse import connect
+    from lead_funnel.quality import dedup
     from lead_funnel.quality.profiling import write_profiles
     from lead_funnel.quality.scorecard import compute_scorecard, plot_scorecard, to_markdown
 
@@ -129,9 +131,20 @@ def _profile(args: argparse.Namespace, settings: Settings) -> int:
         written = write_profiles(con, [f"raw.{t}" for t in RAW_TABLES], out_dir)
         try:
             scorecard = compute_scorecard(con, settings.raw_dir / "_truth_leads.parquet")
+            leads = dedup.load_leads(con)
         except duckdb.CatalogException:
             logger.error("Staging/marts tables missing. Run `dbt build` before the scorecard.")
             return 2
+    truth_file = settings.raw_dir / "_ground_truth.json"
+    if truth_file.exists():
+        pairs = json.loads(truth_file.read_text(encoding="utf-8"))["injected_issues"]
+        truth = {tuple(p) for p in pairs["near_duplicate_pairs"]}
+        table = dedup.compare_strategies(leads, truth)
+        (out_dir / "dedup_analysis.md").write_text(
+            dedup.to_markdown(table, len(truth)),
+            encoding="utf-8",
+            newline="\n",
+        )
     figure = plot_scorecard(scorecard, settings.reports_dir / "figures" / "quality_scorecard.png")
     (out_dir / "scorecard.md").write_text(
         to_markdown(scorecard, figure="../figures/" + figure.name),

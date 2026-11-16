@@ -62,3 +62,33 @@ models:
     description: Interactions recorded more than `var('late_record_hours')` after they happened.
   - name: last_touch_at
     description: Time of the latest interaction (UTC).
+- name: int_leads__duplicates
+  description: >
+    **Grain: one row per lead.** Probable near-duplicates: leads sharing the normalised
+    e-mail or phone (salted hashes) with an earlier lead. The earliest lead of a group is
+    the master. Rule chosen from the precision/recall comparison in
+    reports/quality/dedup_analysis.md (F05-T04).
+  data_tests:
+  - dbt_utils.equal_rowcount:
+      arguments:
+        compare_model: ref('stg_crm__leads')
+  columns:
+  - name: lead_id
+    description: '{{ doc("lead_id") }}'
+    data_tests: [unique, not_null]
+  - name: duplicate_of_lead_id
+    description: Master lead this lead duplicates; null if the lead is not a duplicate.
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('stg_crm__leads')
+          field: lead_id
+  - name: duplicate_match_key
+    description: Identifier that matched (`email` or `phone`); null if not a duplicate.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values: [email, phone]
+  - name: is_probable_duplicate
+    description: True if the lead duplicates an earlier lead. Exclude these from funnel analyses.
+    data_tests: [not_null]

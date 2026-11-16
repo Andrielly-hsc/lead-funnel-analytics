@@ -6,24 +6,25 @@
 ```mermaid
 flowchart LR
     subgraph source
-        n18["crm.agents"]
-        n19["crm.campaigns"]
-        n20["crm.interactions"]
-        n21["crm.leads"]
-        n22["crm.opportunities"]
+        n19["crm.agents"]
+        n20["crm.campaigns"]
+        n21["crm.interactions"]
+        n22["crm.leads"]
+        n23["crm.opportunities"]
     end
     subgraph staging
-        n11["stg_crm__agents"]
-        n12["stg_crm__campaigns"]
-        n13["stg_crm__interactions"]
-        n14["stg_crm__leads"]
-        n15["stg_crm__opportunities"]
-        n16[("channel_mapping")]
-        n17[("country_mapping")]
+        n12["stg_crm__agents"]
+        n13["stg_crm__campaigns"]
+        n14["stg_crm__interactions"]
+        n15["stg_crm__leads"]
+        n16["stg_crm__opportunities"]
+        n17[("channel_mapping")]
+        n18[("country_mapping")]
     end
     subgraph intermediate
-        n9["int_leads__first_response"]
-        n10["int_leads__touch_counts"]
+        n9["int_leads__duplicates"]
+        n10["int_leads__first_response"]
+        n11["int_leads__touch_counts"]
     end
     subgraph marts
         n2["dim_agent"]
@@ -38,21 +39,23 @@ flowchart LR
         n0(["Lead funnel KPI dashboard"])
         n1(["SLA and conversion analysis"])
     end
+    n10 --> n7
     n10 --> n8
-    n11 --> n2
-    n12 --> n3
-    n13 --> n10
-    n13 --> n7
-    n13 --> n9
+    n11 --> n8
+    n12 --> n2
+    n13 --> n3
     n14 --> n10
-    n14 --> n6
-    n14 --> n8
-    n14 --> n9
+    n14 --> n11
+    n14 --> n7
+    n15 --> n10
+    n15 --> n11
+    n15 --> n6
     n15 --> n8
-    n16 --> n14
-    n16 --> n4
-    n17 --> n14
-    n18 --> n11
+    n15 --> n9
+    n16 --> n8
+    n17 --> n15
+    n17 --> n4
+    n18 --> n15
     n19 --> n12
     n2 --> n0
     n2 --> n7
@@ -60,6 +63,7 @@ flowchart LR
     n20 --> n13
     n21 --> n14
     n22 --> n15
+    n23 --> n16
     n3 --> n8
     n4 --> n0
     n4 --> n1
@@ -71,6 +75,5 @@ flowchart LR
     n7 --> n0
     n8 --> n0
     n8 --> n1
-    n9 --> n7
     n9 --> n8
 ```

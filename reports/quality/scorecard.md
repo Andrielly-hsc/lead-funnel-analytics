@@ -13,6 +13,7 @@
 | uniqueness | lead rows unique by lead_id | raw | 50,500 / 51,510 | 98.04 % | ≥ 99 % | ❌ FAIL |
 | uniqueness | lead rows unique by lead_id | staging | 50,500 / 50,500 | 100.00 % | ≥ 99 % | ✅ PASS |
 | uniqueness | one lead per person (e-mail) | staging | 50,000 / 50,500 | 99.01 % | ≥ 99.5 % | ❌ FAIL |
+| uniqueness | one lead per person, flagged duplicates excluded | marts | 50,000 / 50,000 | 100.00 % | ≥ 99.5 % | ✅ PASS |
 | validity | channel is a canonical code | raw | 48,932 / 51,510 | 95.00 % | ≥ 99 % | ❌ FAIL |
 | validity | channel is a canonical code | staging | 50,500 / 50,500 | 100.00 % | ≥ 99 % | ✅ PASS |
 | validity | country is an ISO code | raw | 48,417 / 51,510 | 94.00 % | ≥ 99 % | ❌ FAIL |
@@ -27,7 +28,7 @@
 ## Summary by dimension (metrics passing)
 
 - **completeness:** 2/2
-- **uniqueness:** 1/3
+- **uniqueness:** 2/4
 - **validity:** 2/5
 - **consistency:** 2/2
 - **accuracy:** 2/2
