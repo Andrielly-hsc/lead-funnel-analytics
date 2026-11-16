@@ -1,0 +1,34 @@
+version: 2
+
+# Exposures declare who consumes the marts. They complete the lineage graph and
+# answer "what breaks if I change this model?" (impact analysis).
+exposures:
+  - name: kpi_dashboard
+    label: Lead funnel KPI dashboard
+    type: dashboard
+    maturity: low
+    description: >
+      Streamlit dashboard with funnel, SLA and team KPIs (feature F09). Planned.
+    owner:
+      name: Andrielly-hsc
+    depends_on:
+      - ref('fct_leads')
+      - ref('fct_interactions')
+      - ref('dim_date')
+      - ref('dim_agent')
+      - ref('dim_channel')
+      - ref('dim_lead_source')
+
+  - name: sla_analysis_report
+    label: SLA and conversion analysis
+    type: analysis
+    maturity: low
+    description: >
+      Statistical analysis of the effect of first-response time on conversion
+      (features F07-F08), summarised in reports/analysis_report.md. Planned.
+    owner:
+      name: Andrielly-hsc
+    depends_on:
+      - ref('fct_leads')
+      - ref('dim_lead_source')
+      - ref('dim_channel')

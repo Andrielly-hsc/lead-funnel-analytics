@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress |
+| **Status** | Done |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | [F03](F03-ingestion-raw-layer.md) |
 | **Estimate** | 13 h |
@@ -32,10 +32,10 @@ Transform raw data into a tested, documented star schema following dbt and Kimba
 
 ## Acceptance criteria
 
-- [ ] `dbt build` passes with 0 errors
-- [ ] Every model documented with description and grain
-- [ ] No raw e-mail or phone in marts
-- [ ] Row counts reconcile: unique leads in staging == rows in `fct_leads`
+- [x] `dbt build` passes with 0 errors
+- [x] Every model documented with description and grain
+- [x] No raw e-mail or phone in marts
+- [x] Row counts reconcile: unique leads in staging == rows in `fct_leads`
 
 ## Tasks
 
@@ -46,7 +46,7 @@ Transform raw data into a tested, documented star schema following dbt and Kimba
 | [F04-T03](../tasks/F04-T03-intermediate-models.md) | Build intermediate models | 2 h | Done |
 | [F04-T04](../tasks/F04-T04-dimension-models.md) | Build dimension models (incl. SCD Type 2) | 3 h | Done |
 | [F04-T05](../tasks/F04-T05-fact-models.md) | Build fact models | 3 h | Done |
-| [F04-T06](../tasks/F04-T06-docs-and-lineage.md) | Document models and publish lineage | 1 h | To Do |
+| [F04-T06](../tasks/F04-T06-docs-and-lineage.md) | Document models and publish lineage | 1 h | Done |
 
 ## Syllabus topics covered
 

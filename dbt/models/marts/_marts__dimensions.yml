@@ -1,72 +1,114 @@
 version: 2
-
 models:
-  - name: dim_date
-    description: >
-      **Grain: one row per calendar day** (2024-2026). Conformed dimension shared by
-      all facts. `date_key` is an integer `YYYYMMDD`, the usual smart key for dates.
+- name: dim_date
+  description: >
+    **Grain: one row per calendar day** (2024-2026). Conformed dimension shared by all facts.
+    `date_key` is an integer `YYYYMMDD`, the usual smart key for dates.
+  data_tests:
+  - dbt_utils.sequential_values:
+      arguments:
+        column_name: date_day
+        datepart: day
+  columns:
+  - name: date_key
+    description: Smart key `YYYYMMDD` (integer).
+    data_tests: [unique, not_null]
+  - name: date_day
+    description: Calendar date.
+    data_tests: [unique, not_null]
+  - name: calendar_year
+    description: Calendar year.
+  - name: calendar_quarter
+    description: Calendar quarter (1-4).
+  - name: month_of_year
+    description: Month number (1-12).
+  - name: month_name
+    description: Month name.
+  - name: iso_year
+    description: ISO 8601 week-numbering year. Group weekly reports by `iso_year` + `iso_week`.
+  - name: iso_week
+    description: ISO 8601 week number (1-53).
+  - name: iso_day_of_week
+    description: 1 = Monday … 7 = Sunday (ISO 8601).
+  - name: day_name
+    description: Weekday name.
+  - name: is_weekend
+    description: Saturday or Sunday.
+    data_tests: [not_null]
+- name: dim_agent
+  description: >
+    **Grain: one row per agent version** — Slowly Changing Dimension type 2. `valid_from` is inclusive,
+    `valid_to` exclusive (null = current). Facts join to the version valid *when the event happened*,
+    so a team change does not rewrite history. The source export already carries history, so no
+    dbt snapshot is needed.
+  columns:
+  - name: agent_key
+    description: Surrogate key (hash of `agent_id` + `valid_from`).
+    data_tests: [unique, not_null]
+  - name: agent_id
+    description: Natural key of the agent (stable across versions).
+    data_tests: [not_null]
+  - name: team
+    description: '{{ doc("team") }}'
+  - name: seniority
+    description: '{{ doc("seniority") }}'
+  - name: valid_from
+    description: '{{ doc("valid_from") }}'
+  - name: valid_to
+    description: '{{ doc("valid_to") }}'
+  - name: is_current
+    description: '{{ doc("is_current") }}'
+    data_tests: [not_null]
+- name: dim_channel
+  description: '**Grain: one row per canonical channel.**'
+  columns:
+  - name: channel_key
+    description: '{{ doc("surrogate_key") }}'
+    data_tests: [unique, not_null]
+  - name: channel
+    description: Canonical channel code.
+    data_tests: [unique, not_null]
+  - name: channel_label
+    description: Channel name for display.
+    data_tests: [not_null]
+- name: dim_lead_source
+  description: '**Grain: one row per marketing source.**'
+  columns:
+  - name: lead_source_key
+    description: '{{ doc("surrogate_key") }}'
+    data_tests: [unique, not_null]
+  - name: lead_source
+    description: '{{ doc("lead_source") }}'
+    data_tests: [unique, not_null]
+  - name: lead_source_label
+    description: Source name for display.
+  - name: is_paid_media
+    description: Paid search and social advertising.
+  - name: has_campaigns
+    description: True for sources that run campaigns (paid search, social, event).
+- name: dim_campaign
+  description: >
+    **Grain: one row per campaign**, plus the member `campaign_key = '-1'` ("No campaign") for
+    leads without a campaign, so fact foreign keys are never null.
+  columns:
+  - name: campaign_key
+    description: '{{ doc("surrogate_key") }} `''-1''` = no campaign.'
+    data_tests: [unique, not_null]
+  - name: campaign_id
+    description: Natural key; null only for the "No campaign" member.
+  - name: campaign_name
+    description: Human-readable campaign name.
+  - name: lead_source
+    description: '{{ doc("lead_source") }}'
+  - name: start_date
+    description: First day of the campaign (inclusive).
+  - name: end_date
+    description: Last day of the campaign (inclusive).
+  - name: duration_days
+    description: Length of the campaign in days.
+  - name: budget_eur
+    description: Planned campaign budget in euros.
     data_tests:
-      - dbt_utils.sequential_values:
-          arguments:
-            column_name: date_day
-            datepart: day
-    columns:
-      - name: date_key
-        data_tests: [unique, not_null]
-      - name: date_day
-        data_tests: [unique, not_null]
-      - name: iso_day_of_week
-        description: 1 = Monday … 7 = Sunday (ISO 8601).
-      - name: is_weekend
-        data_tests: [not_null]
-
-  - name: dim_agent
-    description: >
-      **Grain: one row per agent version** — Slowly Changing Dimension type 2.
-      `valid_from` is inclusive, `valid_to` exclusive (null = current). Facts join to
-      the version valid *when the event happened*, so a team change does not rewrite
-      history. The source export already carries history, so no dbt snapshot is needed.
-    columns:
-      - name: agent_key
-        description: Surrogate key (hash of `agent_id` + `valid_from`).
-        data_tests: [unique, not_null]
-      - name: agent_id
-        description: Natural key of the agent (stable across versions).
-        data_tests: [not_null]
-      - name: is_current
-        data_tests: [not_null]
-
-  - name: dim_channel
-    description: "**Grain: one row per canonical channel.**"
-    columns:
-      - name: channel_key
-        data_tests: [unique, not_null]
-      - name: channel
-        data_tests: [unique, not_null]
-      - name: channel_label
-        data_tests: [not_null]
-
-  - name: dim_lead_source
-    description: "**Grain: one row per marketing source.**"
-    columns:
-      - name: lead_source_key
-        data_tests: [unique, not_null]
-      - name: lead_source
-        data_tests: [unique, not_null]
-      - name: is_paid_media
-        description: Paid search and social advertising.
-
-  - name: dim_campaign
-    description: >
-      **Grain: one row per campaign**, plus the member `campaign_key = '-1'`
-      ("No campaign") for leads without a campaign, so fact foreign keys are never null.
-    columns:
-      - name: campaign_key
-        data_tests: [unique, not_null]
-      - name: campaign_id
-        description: Natural key; null only for the "No campaign" member.
-      - name: budget_eur
-        data_tests:
-          - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
+    - dbt_utils.accepted_range:
+        arguments:
+          min_value: 0

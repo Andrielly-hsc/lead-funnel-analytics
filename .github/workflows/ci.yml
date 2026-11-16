@@ -85,3 +85,5 @@ jobs:
         run: dbt source freshness --project-dir dbt --profiles-dir dbt
       - name: Build and test all models
         run: dbt build --project-dir dbt --profiles-dir dbt
+      - name: Check that docs/lineage.md matches the dbt project
+        run: python scripts/dbt_lineage.py --check
