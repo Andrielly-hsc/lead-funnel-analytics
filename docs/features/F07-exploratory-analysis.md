@@ -31,9 +31,9 @@ Describe the funnel rigorously: variable types, distributions, group and period 
 
 ## Acceptance criteria
 
-- [ ] Notebook `01_eda.ipynb` runs top-to-bottom from a clean kernel
-- [ ] All logic lives in `src/lead_funnel/analysis/eda.py` with tests
-- [ ] A 'Limitations of the source' section exists
+- [x] Notebook `01_eda.ipynb` runs top-to-bottom from a clean kernel
+- [x] All logic lives in `src/lead_funnel/analysis/eda.py` with tests
+- [x] A 'Limitations of the source' section exists
 
 ## Tasks
 
