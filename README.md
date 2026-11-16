@@ -76,6 +76,16 @@ Results: [scorecard](reports/quality/scorecard.md) ·
 [near-duplicate analysis](reports/quality/dedup_analysis.md) ·
 [known issues](docs/data/known_issues.md).
 
+### Analytical SQL
+
+```bash
+python scripts/run_sql.py         # runs sql/analysis/*.sql -> reports/sql/*.md
+python scripts/benchmark_sql.py   # formats, partitions, zone maps, indexes -> docs/performance.md
+```
+
+Highlights: [funnel KPIs](reports/sql/01_funnel_kpis.md) ·
+[SQL pitfalls with real numbers](docs/sql_pitfalls.md) · [performance](docs/performance.md).
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 

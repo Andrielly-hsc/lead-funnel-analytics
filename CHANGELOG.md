@@ -29,3 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   quality dimensions (raw vs after the pipeline, accuracy against the ground truth), error/warn
   dbt tests with a known-issues register, and near-duplicate flagging justified by a
   precision/recall comparison of matching strategies.
+- Analytical SQL (`sql/analysis/`, results in `reports/sql/`): funnel and SLA KPIs, window functions,
+  cohorts, nine reproduced SQL pitfalls (`docs/sql_pitfalls.md`) and a performance benchmark of
+  formats, partitioning, zone maps and indexes with an annotated execution plan
+  (`docs/performance.md`).
