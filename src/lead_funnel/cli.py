@@ -72,11 +72,42 @@ def _generate(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+# ----------------------------------------------------------------------------------
+# ingest
+# ----------------------------------------------------------------------------------
+def _ingest_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--full-refresh",
+        action="store_true",
+        help="Reload every file, even if it has not changed since the last load.",
+    )
+    parser.add_argument("--raw-dir", type=Path, help="Landing folder (default: <LF_DATA_DIR>/raw).")
+
+
+def _ingest(args: argparse.Namespace, settings: Settings) -> int:
+    from lead_funnel.ingestion.loaders import ingest
+
+    raw_dir = args.raw_dir or settings.raw_dir
+    if not raw_dir.is_dir():
+        logger.error("Landing folder %s does not exist. Run `lead-funnel generate` first.", raw_dir)
+        return 2
+    results = ingest(raw_dir, settings.db_path, full_refresh=args.full_refresh)
+    bad = [r for r in results if r.status in ("failed", "rejected")]
+    logger.info(
+        "Ingestion finished: %d loaded, %d skipped, %d rejected/failed -> %s",
+        sum(r.status == "success" for r in results),
+        sum(r.status == "skipped" for r in results),
+        len(bad),
+        settings.db_path,
+    )
+    return 1 if bad else 0
+
+
 COMMANDS: dict[str, Command] = {
     "generate": Command(
         "Generate the synthetic CRM dataset into data/raw/", _generate, _generate_arguments
     ),
-    "ingest": Command("Load landing files into the DuckDB raw layer", _not_implemented("F03-T02")),
+    "ingest": Command("Load landing files into the DuckDB raw layer", _ingest, _ingest_arguments),
     "profile": Command(
         "Profile raw data and build the quality scorecard", _not_implemented("F05-T01")
     ),

@@ -67,6 +67,7 @@ def connect(db_path: Path | str, *, read_only: bool = False) -> Iterator[duckdb.
     con = duckdb.connect(str(path), read_only=read_only)
     try:
         con.execute("set TimeZone = 'UTC'")
+        con.execute("set enable_progress_bar = false")  # keep pipeline logs clean
         yield con
     finally:
         con.close()
@@ -92,15 +93,6 @@ def raw_table_ddl(entity: Entity) -> str:
 
 def ensure_raw_table(con: duckdb.DuckDBPyConnection, entity: Entity) -> None:
     con.execute(raw_table_ddl(entity))
-
-
-def successful_hashes(con: duckdb.DuckDBPyConnection, entity: str) -> set[str]:
-    """Hashes of files already loaded successfully for an entity."""
-    rows = con.execute(
-        "select distinct file_hash from meta.load_log where entity = ? and status = 'success'",
-        [entity],
-    ).fetchall()
-    return {r[0] for r in rows}
 
 
 def current_hash(con: duckdb.DuckDBPyConnection, entity: str) -> str | None:
