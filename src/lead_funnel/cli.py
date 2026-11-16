@@ -31,16 +31,6 @@ class Command:
     add_arguments: ArgumentAdder | None = None
 
 
-def _not_implemented(task_id: str) -> Handler:
-    """Placeholder handler for commands whose feature is not built yet."""
-
-    def handler(args: argparse.Namespace, settings: Settings) -> int:
-        logger.error("'%s' is not implemented yet (planned in %s).", args.command, task_id)
-        return 1
-
-    return handler
-
-
 # ----------------------------------------------------------------------------------
 # generate
 # ----------------------------------------------------------------------------------
@@ -162,13 +152,65 @@ def _profile(args: argparse.Namespace, settings: Settings) -> int:
     return 0
 
 
+# ----------------------------------------------------------------------------------
+# report
+# ----------------------------------------------------------------------------------
+def _report_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--bootstrap",
+        type=int,
+        default=200,
+        help="Bootstrap refits for the policy-effect CIs (default: 200).",
+    )
+    parser.add_argument(
+        "--seeds",
+        type=int,
+        default=20,
+        help="Independent synthetic datasets for the bias check (default: 20; 0 = skip).",
+    )
+
+
+def _report(args: argparse.Namespace, settings: Settings) -> int:
+    from lead_funnel.analysis import eda, inference, regression
+    from lead_funnel.analysis.report import run_inference, to_markdown
+    from lead_funnel.ingestion.warehouse import connect
+
+    if not settings.db_path.exists():
+        logger.error("Warehouse %s not found. Run the pipeline first.", settings.db_path)
+        return 2
+    with connect(settings.db_path, read_only=True) as con:
+        leads = eda.load_leads(con)
+        calls = inference.load_calls(con)
+    truth_file = settings.raw_dir / "_ground_truth.json"
+    truth = json.loads(truth_file.read_text(encoding="utf-8")) if truth_file.exists() else None
+    try:
+        results = run_inference(
+            leads,
+            calls,
+            settings.reports_dir / "figures",
+            truth=truth,
+            bootstrap=args.bootstrap,
+            seeds=args.seeds,
+        )
+    except regression.ModelDidNotConverge as exc:
+        logger.error("%s. The sample is probably too small for the adjusted model.", exc)
+        return 2
+    out = settings.reports_dir / "inference" / "results.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(to_markdown(results), encoding="utf-8", newline="\n")
+    logger.info("Wrote %s and %d figures", out, len(results.figures))
+    return 0
+
+
 COMMANDS: dict[str, Command] = {
     "generate": Command(
         "Generate the synthetic CRM dataset into data/raw/", _generate, _generate_arguments
     ),
     "ingest": Command("Load landing files into the DuckDB raw layer", _ingest, _ingest_arguments),
     "profile": Command("Profile raw data and build the quality scorecard", _profile),
-    "report": Command("Produce analysis figures and statistics", _not_implemented("F08")),
+    "report": Command(
+        "Run the pre-registered inference; write reports/inference/", _report, _report_arguments
+    ),
 }
 
 

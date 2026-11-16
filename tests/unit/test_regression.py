@@ -108,3 +108,27 @@ def test_comparison_table_and_figure(models, frame, generated, tmp_path: Path) -
     assert table.loc[2, "estimate"] > table.loc[3, "estimate"]  # adjustment shrinks the gap
     out = reg.plot_effect_comparison(table, tmp_path / "effect.png")
     assert out.exists() and out.stat().st_size > 10_000
+
+
+def test_bootstrap_skips_and_counts_non_converged_resamples(frame, monkeypatch) -> None:
+    real_fit = reg.fit
+    calls = {"n": 0}
+
+    def flaky_fit(formula, df):
+        calls["n"] += 1
+        if calls["n"] % 5 == 0:  # every fifth resample "separates"
+            raise reg.ModelDidNotConverge("separation")
+        return real_fit(formula, df)
+
+    monkeypatch.setattr(reg, "fit", flaky_fit)
+    boot = reg.bootstrap_policy(frame, resamples=10, seed=3)
+    assert (len(boot), boot.attrs["failed"], boot.attrs["resamples"]) == (8, 2, 10)
+
+
+def test_bootstrap_refuses_when_too_many_resamples_fail(frame, monkeypatch) -> None:
+    def always_fails(formula, df):
+        raise reg.ModelDidNotConverge("separation")
+
+    monkeypatch.setattr(reg, "fit", always_fails)
+    with pytest.raises(reg.ModelDidNotConverge, match="bootstrap resamples"):
+        reg.bootstrap_policy(frame, resamples=5)
