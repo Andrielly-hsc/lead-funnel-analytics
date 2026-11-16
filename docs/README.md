@@ -22,7 +22,7 @@ each in its own Markdown file, versioned with the code.
 |---|---|---|---|---|---|---|
 | [F01](features/F01-project-setup.md) | Project setup & engineering standards | Must | — | 6 | 8 h | Done |
 | [F02](features/F02-synthetic-crm-data-generator.md) | Synthetic CRM data generator | Must | F01 | 6 | 17 h | Done |
-| [F03](features/F03-ingestion-raw-layer.md) | Ingestion into the raw layer | Must | F02 | 4 | 8 h | In Progress |
+| [F03](features/F03-ingestion-raw-layer.md) | Ingestion into the raw layer | Must | F02 | 4 | 8 h | Done |
 | [F04](features/F04-dimensional-model-dbt.md) | Dimensional model with dbt | Must | F03 | 6 | 13 h | To Do |
 | [F05](features/F05-data-quality-profiling.md) | Data quality & profiling | Must | F03, F04 | 4 | 10 h | To Do |
 | [F06](features/F06-analytical-sql.md) | Analytical SQL | Must | F04 | 4 | 8 h | To Do |
