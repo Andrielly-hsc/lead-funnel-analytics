@@ -25,7 +25,7 @@ each in its own Markdown file, versioned with the code.
 | [F03](features/F03-ingestion-raw-layer.md) | Ingestion into the raw layer | Must | F02 | 4 | 8 h | Done |
 | [F04](features/F04-dimensional-model-dbt.md) | Dimensional model with dbt | Must | F03 | 6 | 13 h | Done |
 | [F05](features/F05-data-quality-profiling.md) | Data quality & profiling | Must | F03, F04 | 4 | 10 h | Done |
-| [F06](features/F06-analytical-sql.md) | Analytical SQL | Must | F04 | 4 | 8 h | To Do |
+| [F06](features/F06-analytical-sql.md) | Analytical SQL | Must | F04 | 4 | 8 h | Done |
 | [F07](features/F07-exploratory-analysis.md) | Exploratory & descriptive analysis | Must | F04 | 4 | 7 h | To Do |
 | [F08](features/F08-statistical-inference.md) | Statistical inference & relationships | Must | F07 | 6 | 12 h | To Do |
 | [F09](features/F09-dashboard.md) | KPI dashboard | Should | F06, F08 | 4 | 8 h | To Do |
