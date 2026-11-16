@@ -17,6 +17,7 @@ Create the two facts with declared grain.
 1. `fct_leads` (accumulating snapshot): one row per lead with milestone timestamps, response minutes, `sla_met`, `is_converted`, amount, FKs
 2. `fct_interactions` (transaction): one row per interaction with FKs to lead, agent (point-in-time join on SCD2 validity), date
 3. Relationship tests from facts to every dimension
+4. Add the `e2e` job to `.github/workflows/ci.yml`: generate a small sample (`--n-leads 2000`) → ingest → `dbt build` → `pytest -m integration`
 
 ## Acceptance criteria
 

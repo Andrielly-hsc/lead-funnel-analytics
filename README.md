@@ -4,6 +4,10 @@
 > An end-to-end analytics case: synthetic CRM data → tested star schema (dbt + DuckDB) →
 > rigorous statistical inference → KPI dashboard.
 
+[![CI](https://github.com/Andrielly-hsc/lead-funnel-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Andrielly-hsc/lead-funnel-analytics/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 **Status:** 🚧 in development — see the [backlog](docs/README.md).
 
 ## Challenge
