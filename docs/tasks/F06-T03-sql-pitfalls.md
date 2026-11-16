@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F06 — Analytical SQL](../features/F06-analytical-sql.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 2 h |
 | **Depends on** | F06-T02 |
 | **Branch** | `feat/F06-T03-sql-pitfalls` |
@@ -36,4 +36,7 @@ Interviewers love these — and they are exactly the “errors of interpretation
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- `05_pitfalls.sql`: nine mistakes that run without error but return wrong numbers, each as **one row with the wrong and the right result side by side** on the real warehouse; explained in `docs/sql_pitfalls.md` (why it happens + the rule that prevents it).
+- Measured impact (seed 42): join fan-out inflates the pipeline value from €228.7 M to **€902.1 M (+294 %)**; `NOT IN` with a null in the subquery returns **0** instead of 50 000; average of channel rates 18.8 % vs true 15.6 %; `coalesce(null, 0)` makes the team look 4 % faster; UTC instead of local hours misclassifies 4.2 pp of leads; `!=` silently drops the 4 006 leads with unknown industry.
+- Several pitfalls tie back to earlier design decisions: declared grain + reconciliation tests (P4), null semantics in `int_leads__first_response` (P1), `created_at_local` (P6), the known-issues register (P7).
+- Tooling: the ANSI `cast()` in P9 is intentional (portability is the point), so the sqlfluff fixer is stopped with an inline `-- noqa: CV11` (the exact format matters: extra text after the rule code disables it). `run_sql.py` now ignores trailing comments when detecting the end of a statement — the noqa comment had made it drop the last query.

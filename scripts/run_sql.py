@@ -54,7 +54,8 @@ def parse(text: str) -> tuple[list[str], list[Statement]]:
         if not body and not stripped:
             continue
         body.append(line)
-        if stripped.endswith(";"):
+        code = stripped.split("--", 1)[0].rstrip()  # ignore a trailing comment (e.g. noqa)
+        if code.endswith(";"):
             title = comments[0] if comments else f"Statement {len(statements) + 1}"
             statements.append(Statement(title, comments[1:], "\n".join(body).rstrip(";\n ")))
             comments, body = [], []
