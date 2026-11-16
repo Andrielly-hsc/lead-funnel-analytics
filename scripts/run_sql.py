@@ -64,9 +64,11 @@ def parse(text: str) -> tuple[list[str], list[Statement]]:
 def _markdown_table(df: pd.DataFrame) -> str:
     shown = df.head(MAX_ROWS)
 
-    def fmt(v: object) -> str:
+    def fmt(v: object, column: str) -> str:
         if v is None or (isinstance(v, float) and pd.isna(v)):
             return "∅"
+        if "year" in column:  # 2025, not 2,025
+            return str(int(v))
         if isinstance(v, float):
             return f"{v:,.4f}".rstrip("0").rstrip(".")
         if isinstance(v, int):
@@ -78,7 +80,8 @@ def _markdown_table(df: pd.DataFrame) -> str:
         "|" + "---|" * len(shown.columns),
     ]
     lines += [
-        "| " + " | ".join(fmt(v) for v in row) + " |" for row in shown.itertuples(index=False)
+        "| " + " | ".join(fmt(v, c) for v, c in zip(row, shown.columns, strict=True)) + " |"
+        for row in shown.itertuples(index=False)
     ]
     if len(df) > MAX_ROWS:
         lines.append(f"\n_… {len(df) - MAX_ROWS} more rows not shown._")
