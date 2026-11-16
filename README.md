@@ -86,6 +86,16 @@ python scripts/benchmark_sql.py   # formats, partitions, zone maps, indexes -> d
 Highlights: [funnel KPIs](reports/sql/01_funnel_kpis.md) ·
 [SQL pitfalls with real numbers](docs/sql_pitfalls.md) · [performance](docs/performance.md).
 
+### Exploratory analysis
+
+```bash
+python scripts/run_notebooks.py   # executes notebooks/*.ipynb top to bottom, saves outputs
+```
+
+[notebooks/01_eda.ipynb](notebooks/01_eda.ipynb) — distributions, groups, periods, anomalies
+and the [limitations of the source](docs/data/known_issues.md#limitations-of-the-source-what-the-data-cannot-tell-us).
+All logic lives in `src/lead_funnel/analysis/` and is unit-tested.
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 

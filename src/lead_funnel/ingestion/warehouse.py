@@ -14,6 +14,7 @@ dbt (F04) creates the ``staging``/``marts`` schemas on top of ``raw``.
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -67,7 +68,10 @@ def connect(db_path: Path | str, *, read_only: bool = False) -> Iterator[duckdb.
     con = duckdb.connect(str(path), read_only=read_only)
     try:
         con.execute("set TimeZone = 'UTC'")
-        con.execute("set enable_progress_bar = false")  # keep pipeline logs clean
+        # keep pipeline logs clean. Inside Jupyter, DuckDB refuses to change this setting
+        # unless ipywidgets is installed; the bar is harmless there, so ignore the refusal.
+        with contextlib.suppress(duckdb.InvalidInputException):
+            con.execute("set enable_progress_bar = false")
         yield con
     finally:
         con.close()
