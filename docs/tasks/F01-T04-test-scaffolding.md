@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F01 — Project setup & engineering standards](../features/F01-project-setup.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | F01-T03 |
 | **Branch** | `feat/F01-T04-test-scaffolding` |
@@ -35,4 +35,7 @@ Fixtures in `conftest.py` avoid repeated setup code. Separating unit from integr
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- `--strict-markers` makes a typo such as `@pytest.mark.intergration` fail instead of silently creating a new marker.
+- Branch coverage is enabled (`branch = true`): it checks that both sides of every `if` were executed, not only that each line ran.
+- `tmp_warehouse` uses pytest's built-in `tmp_path`, so every test gets its own DuckDB file and nothing leaks between tests.
+- Tests import the **installed** package (no `pythonpath = src` hack), which is the point of the `src/` layout.
