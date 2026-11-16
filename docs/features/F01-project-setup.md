@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress |
+| **Status** | Done |
 | **Priority** | Must (MoSCoW) |
 | **Depends on** | — |
 | **Estimate** | 8 h |
@@ -34,9 +34,9 @@ Create a professional, reproducible repository skeleton so every later feature s
 
 ## Acceptance criteria
 
-- [ ] `pip install -e .` works on a fresh venv with Python 3.11
-- [ ] `ruff check .`, `ruff format --check .` and `pytest` pass locally and in CI
-- [ ] README explains setup in ≤ 10 commands
+- [x] `pip install -e .` works on a fresh venv with Python 3.11
+- [x] `ruff check .`, `ruff format --check .` and `pytest` pass locally and in CI
+- [x] README explains setup in ≤ 10 commands
 
 ## Tasks
 
@@ -46,7 +46,7 @@ Create a professional, reproducible repository skeleton so every later feature s
 | [F01-T02](../tasks/F01-T02-python-packaging.md) | Configure Python packaging and environment | 2 h | Done |
 | [F01-T03](../tasks/F01-T03-code-quality-tooling.md) | Set up lint, format and pre-commit hooks | 1 h | Done |
 | [F01-T04](../tasks/F01-T04-test-scaffolding.md) | Create the test scaffolding | 1 h | Done |
-| [F01-T05](../tasks/F01-T05-ci-pipeline.md) | Create the GitHub Actions CI pipeline | 2 h | In Review |
+| [F01-T05](../tasks/F01-T05-ci-pipeline.md) | Create the GitHub Actions CI pipeline | 2 h | Done |
 | [F01-T06](../tasks/F01-T06-config-and-logging.md) | Add configuration and logging modules | 1 h | Done |
 
 ## Syllabus topics covered
