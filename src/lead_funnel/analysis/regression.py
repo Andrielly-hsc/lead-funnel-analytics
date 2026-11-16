@@ -33,8 +33,32 @@ POLICY_HOURS = 0.5  # the counterfactual policy: every lead answered within 30 m
 SLA_HOURS = 1.0
 
 
+class ModelDidNotConverge(RuntimeError):
+    """Maximum likelihood did not converge — the estimates must not be used."""
+
+
 def fit(formula: str, df: pd.DataFrame) -> BinaryResultsWrapper:
-    return smf.logit(formula, df).fit(disp=0)
+    """Fit a logistic model and refuse to return a non-converged one.
+
+    The usual cause is (quasi-)complete **separation**: a category in which every lead
+    converted, or none did (e.g. zero conversions among never-answered leads in a small
+    sample). Its coefficient then runs off to ±∞ and every other estimate is unreliable.
+    Remedies: more data, merging sparse categories, or a penalised (Firth) model.
+    """
+    import warnings
+
+    from statsmodels.tools.sm_exceptions import ConvergenceWarning
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)  # handled explicitly below
+        model = smf.logit(formula, df).fit(disp=0, maxiter=100)
+    if not model.mle_retvals["converged"]:
+        largest = model.params.abs().idxmax()
+        raise ModelDidNotConverge(
+            f"logistic model did not converge (largest coefficient: {largest} = "
+            f"{model.params[largest]:.1f}); likely separation — check sparse categories"
+        )
+    return model
 
 
 @dataclass(frozen=True)
@@ -101,7 +125,10 @@ def calibration_table(
 def policy_frame(df: pd.DataFrame, policy_hours: float = POLICY_HOURS) -> pd.DataFrame:
     """The same leads under the policy "answered within ``policy_hours``"."""
     cf = df.copy()
-    hours = np.where(df["no_response"] == 1, policy_hours, np.minimum(df["hours"], policy_hours))
+    # clip at 0: leads with clock-skew errors have negative hours, and log2(1 + h) is
+    # undefined for h < -1 (only relevant when errors are deliberately included)
+    observed = np.clip(df["hours"], 0, None)
+    hours = np.where(df["no_response"] == 1, policy_hours, np.minimum(observed, policy_hours))
     cf["log2_hours"] = np.log2(1 + hours)
     cf["no_response"] = 0
     return cf
@@ -118,12 +145,14 @@ class PolicyEffect:
         return 100 * (self.policy - self.observed)
 
 
-def g_computation(model: BinaryResultsWrapper, df: pd.DataFrame) -> PolicyEffect:
+def g_computation(
+    model: BinaryResultsWrapper, df: pd.DataFrame, sla_hours: float = SLA_HOURS
+) -> PolicyEffect:
     """Standardisation: predict every lead under observed and counterfactual response time
     with the *adjusted* model, holding its covariates fixed, and average the difference."""
     p_obs = model.predict(df)
     p_pol = model.predict(policy_frame(df))
-    missed = (df["no_response"] == 0) & (df["hours"] > SLA_HOURS)
+    missed = (df["no_response"] == 0) & (df["hours"] > sla_hours)
     return PolicyEffect(
         observed=float(p_obs.mean()),
         policy=float(p_pol.mean()),
