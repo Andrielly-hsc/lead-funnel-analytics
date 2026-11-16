@@ -19,6 +19,7 @@ Initialise dbt with duckdb adapter and agreed folder structure.
 3. `dbt_project.yml`: materialisations per folder (staging=view, marts=table)
 4. `packages.yml`: `dbt_utils`; `dbt deps`
 5. `_crm__sources.yml` declaring raw tables with freshness on `_loaded_at`
+6. Switch `.sqlfluff` to `templater = dbt` and add `sqlfluff-templater-dbt` + `dbt-duckdb` as `additional_dependencies` of the sqlfluff pre-commit hook
 
 ## Acceptance criteria
 

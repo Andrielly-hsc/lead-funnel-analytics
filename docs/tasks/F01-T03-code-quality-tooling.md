@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F01 — Project setup & engineering standards](../features/F01-project-setup.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | F01-T02 |
 | **Branch** | `feat/F01-T03-code-quality-tooling` |
@@ -36,4 +36,8 @@ Teams agree on a formatter and stop arguing about style. `ruff` replaced black +
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- Hook versions pinned with `pre-commit autoupdate` and **aligned with the lock file** (ruff 0.17.5, sqlfluff 4.5.0), so the editor/CLI and the git hook never disagree.
+- Ruff rule sets: `E`, `W`, `F`, `I`, `B`, `UP`, `SIM` plus `PD` (pandas-vet) and `NPY` (catches the legacy global `np.random.seed`, which the architecture forbids).
+- The hook id `ruff` is now a legacy alias; the config uses `ruff-check`.
+- `.sqlfluff` uses the `jinja` templater for now. The dbt templater needs a dbt project, so the switch was added as a step to F04-T01.
+- Verified: a sample uppercase query is flagged by CP01/CP02 (lowercase keywords/identifiers, dbt style guide).
