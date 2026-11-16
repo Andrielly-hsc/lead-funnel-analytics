@@ -115,8 +115,11 @@ RAW_TABLES = ("leads", "interactions", "agents", "campaigns", "opportunities")
 
 
 def _profile(args: argparse.Namespace, settings: Settings) -> int:
+    import duckdb
+
     from lead_funnel.ingestion.warehouse import connect
     from lead_funnel.quality.profiling import write_profiles
+    from lead_funnel.quality.scorecard import compute_scorecard, plot_scorecard, to_markdown
 
     if not settings.db_path.exists():
         logger.error("Warehouse %s not found. Run `lead-funnel ingest` first.", settings.db_path)
@@ -124,7 +127,25 @@ def _profile(args: argparse.Namespace, settings: Settings) -> int:
     out_dir = settings.reports_dir / "quality"
     with connect(settings.db_path, read_only=True) as con:
         written = write_profiles(con, [f"raw.{t}" for t in RAW_TABLES], out_dir)
-    logger.info("Wrote %d profiles to %s", len(written), out_dir)
+        try:
+            scorecard = compute_scorecard(con, settings.raw_dir / "_truth_leads.parquet")
+        except duckdb.CatalogException:
+            logger.error("Staging/marts tables missing. Run `dbt build` before the scorecard.")
+            return 2
+    figure = plot_scorecard(scorecard, settings.reports_dir / "figures" / "quality_scorecard.png")
+    (out_dir / "scorecard.md").write_text(
+        to_markdown(scorecard, figure="../figures/" + figure.name),
+        encoding="utf-8",
+        newline="\n",
+    )
+    fails = scorecard.loc[scorecard["status"] == "FAIL", ["metric", "layer"]]
+    logger.info(
+        "Wrote %d profiles and the scorecard to %s (%d checks failing: %s)",
+        len(written),
+        out_dir,
+        len(fails),
+        ", ".join(f"{m} [{lyr}]" for m, lyr in fails.itertuples(index=False)) or "none",
+    )
     return 0
 
 
