@@ -24,6 +24,7 @@ dependencies = [
     "numpy>=2.0",
     "pandas>=2.2",
     "pyarrow>=17.0",
+    "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -65,7 +66,6 @@ select = [
     "PD",  # pandas-vet (pandas anti-patterns)
     "NPY", # numpy-specific rules (e.g. legacy np.random.seed)
 ]
-ignore = ["PD901"]  # allow `df` as a variable name in small, local scopes
 
 [tool.ruff.lint.isort]
 known-first-party = ["lead_funnel"]
