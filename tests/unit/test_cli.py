@@ -48,24 +48,18 @@ def test_command_is_required() -> None:
     assert exc.value.code == 2
 
 
-def test_unimplemented_command_points_to_its_task(caplog: pytest.LogCaptureFixture) -> None:
-    with caplog.at_level(logging.ERROR):
-        assert cli.main(["report"]) == 1
-    assert "F08" in caplog.text
-
-
 def test_invalid_configuration_returns_exit_code_2(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     monkeypatch.setenv("LF_SEED", "not-a-number")
     with caplog.at_level(logging.ERROR):
-        assert cli.main(["report"]) == 2
+        assert cli.main(["profile"]) == 2
     assert "Invalid configuration" in caplog.text
 
 
 def test_log_level_flag_overrides_settings(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LF_LOG_LEVEL", "ERROR")
-    cli.main(["--log-level", "debug", "report"])
+    cli.main(["--log-level", "debug", "profile"])
     assert logging.getLogger().level == logging.DEBUG
 
 
@@ -79,3 +73,8 @@ def test_generate_writes_the_landing_zone(tmp_path: Path) -> None:
 
 def test_generate_rejects_tiny_datasets(tmp_path: Path) -> None:
     assert cli.main(["generate", "--n-leads", "5", "--out-dir", str(tmp_path)]) == 2
+
+
+def test_report_needs_a_warehouse(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LF_DATA_DIR", str(tmp_path / "nothing"))
+    assert cli.main(["report", "--seeds", "0"]) == 2

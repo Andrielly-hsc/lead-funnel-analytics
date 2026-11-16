@@ -33,9 +33,9 @@ Test the response-time hypothesis rigorously, quantify relationships, and distin
 
 ## Acceptance criteria
 
-- [ ] Analysis plan committed *before* inference results (visible in git history)
-- [ ] Every result: estimate, 95 % CI, p-value, effect size, practical interpretation
-- [ ] Naïve vs adjusted vs true effect compared in one table
+- [x] Analysis plan committed *before* inference results (visible in git history)
+- [x] Every result: estimate, 95 % CI, p-value, effect size, practical interpretation
+- [x] Naïve vs adjusted vs true effect compared in one table
 
 ## Tasks
 

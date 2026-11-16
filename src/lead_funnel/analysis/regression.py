@@ -160,13 +160,27 @@ def g_computation(
     )
 
 
+MAX_FAILED_RESAMPLES = 0.2
+
+
 def bootstrap_policy(df: pd.DataFrame, resamples: int = 200, seed: int = 42) -> pd.DataFrame:
-    """Non-parametric bootstrap of the whole procedure (refit + g-computation)."""
+    """Non-parametric bootstrap of the whole procedure (refit + g-computation).
+
+    With rare events (few conversions among never-answered leads) a resample can contain
+    none of them; the model then separates and does not converge. Such resamples are
+    skipped and **counted** (``attrs["failed"]``) — and if more than 20 % fail, the
+    interval would no longer be trustworthy, so an error is raised instead.
+    """
     rng = np.random.default_rng(seed)
     rows = []
+    failed = 0
     for _ in range(resamples):
         sample = df.iloc[rng.integers(0, len(df), len(df))].reset_index(drop=True)
-        model = fit(ADJUSTED, sample)
+        try:
+            model = fit(ADJUSTED, sample)
+        except ModelDidNotConverge:
+            failed += 1
+            continue
         eff = g_computation(model, sample)
         rows.append(
             {
@@ -175,7 +189,14 @@ def bootstrap_policy(df: pd.DataFrame, resamples: int = 200, seed: int = 42) -> 
                 "effect_on_missed_pp": eff.effect_on_missed_pp,
             }
         )
-    return pd.DataFrame(rows)
+    if failed > MAX_FAILED_RESAMPLES * resamples:
+        raise ModelDidNotConverge(
+            f"{failed} of {resamples} bootstrap resamples did not converge (separation from "
+            "rare events); the sample is too small for a reliable interval"
+        )
+    out = pd.DataFrame(rows)
+    out.attrs.update(failed=failed, resamples=resamples)
+    return out
 
 
 # ----------------------------------------------------------------------------------
