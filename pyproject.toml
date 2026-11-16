@@ -1,0 +1,46 @@
+# Project metadata and tool configuration (PEP 621).
+# Loose version ranges here declare compatibility; exact versions live in requirements-lock.txt.
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lead-funnel"
+version = "0.1.0"
+description = "Lead funnel analytics: synthetic CRM data, dbt + DuckDB star schema, statistical inference and KPI dashboard."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Andrielly-hsc" }]
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "duckdb>=1.1",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "pyarrow>=17.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pip-tools>=7.4",
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+    "sqlfluff>=3.2",
+]
+
+[project.scripts]
+lead-funnel = "lead_funnel.cli:main"
+
+[project.urls]
+Repository = "https://github.com/Andrielly-hsc/lead-funnel-analytics"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lead_funnel"]
