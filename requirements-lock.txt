@@ -93,6 +93,8 @@ python-dateutil==4.0.0
     # via pandas
 python-discovery==1.9.5
     # via virtualenv
+python-dotenv==1.2.4
+    # via lead-funnel (pyproject.toml)
 pyyaml==6.0.3
     # via
     #   pre-commit

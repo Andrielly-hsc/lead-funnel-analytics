@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F01 — Project setup & engineering standards](../features/F01-project-setup.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | F01-T05 |
 | **Branch** | `feat/F01-T06-config-and-logging` |
@@ -37,4 +37,10 @@ This is the *12-factor app* principle: configuration lives in the environment, n
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- Settings are a **frozen dataclass** built by `get_settings(env)`. Accepting `env` as a parameter makes configuration testable without touching the real environment (dependency injection).
+- Precedence: real environment variables > `.env` file (`python-dotenv`, added as a dependency) > defaults. Invalid values raise `ConfigError` with the variable name, and the CLI exits with code 2.
+- CLI sub-commands are registered in one `COMMANDS` table; not-yet-built commands log which task will implement them and exit with code 1.
+- **Problem found:** `logging.basicConfig(force=True)` removes every root handler, including pytest's `caplog` and any handler set by an application that imports this package. `configure_logging` now adds one named handler only once and never removes foreign handlers.
+- **Lesson:** `pre-commit run --all-files` only checks files Git already tracks. New files are checked when staged, which is why the commit hook caught a line-length error that the manual run had missed. Run `git add` before the manual check.
+- Removed the `PD901` ignore: that rule no longer exists in ruff 0.17.
+- Result: 21 tests, 100 % line and branch coverage on `src/`.

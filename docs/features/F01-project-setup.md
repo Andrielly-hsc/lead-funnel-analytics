@@ -47,7 +47,7 @@ Create a professional, reproducible repository skeleton so every later feature s
 | [F01-T03](../tasks/F01-T03-code-quality-tooling.md) | Set up lint, format and pre-commit hooks | 1 h | Done |
 | [F01-T04](../tasks/F01-T04-test-scaffolding.md) | Create the test scaffolding | 1 h | Done |
 | [F01-T05](../tasks/F01-T05-ci-pipeline.md) | Create the GitHub Actions CI pipeline | 2 h | In Review |
-| [F01-T06](../tasks/F01-T06-config-and-logging.md) | Add configuration and logging modules | 1 h | To Do |
+| [F01-T06](../tasks/F01-T06-config-and-logging.md) | Add configuration and logging modules | 1 h | Done |
 
 ## Syllabus topics covered
 
