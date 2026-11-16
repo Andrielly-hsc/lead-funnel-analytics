@@ -20,6 +20,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "dbt-duckdb>=1.9",
     "duckdb>=1.1",
     "numpy>=2.0",
     "pandas>=2.2",
