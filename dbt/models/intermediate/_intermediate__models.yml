@@ -1,0 +1,64 @@
+version: 2
+models:
+- name: int_leads__first_response
+  description: >
+    **Grain: one row per lead.** The single definition of *first response* (the earliest outbound
+    interaction) and of the SLA rule, parameterised by `var('sla_minutes')`. Never-answered leads
+    have null response times (not zero) and `is_sla_met = false`. Leads whose first contact predates
+    their creation (clock skew) are flagged `is_response_time_invalid` and get `is_sla_met = null`,
+    because their real response time is unknown.
+  data_tests:
+  - dbt_utils.equal_rowcount:
+      arguments:
+        compare_model: ref('stg_crm__leads')
+  columns:
+  - name: lead_id
+    description: '{{ doc("lead_id") }}'
+    data_tests: [unique, not_null]
+  - name: first_response_at
+    description: Earliest outbound interaction (UTC); null if never answered.
+  - name: minutes_to_first_response
+    description: '{{ doc("minutes_to_first_response") }}'
+  - name: is_responded
+    description: '{{ doc("is_responded") }}'
+    data_tests: [not_null]
+  - name: is_response_time_invalid
+    description: First contact recorded before the lead was created (clock skew).
+    data_tests: [not_null]
+  - name: is_response_time_outlier
+    description: First response later than `var('response_outlier_days')` days (likely a data
+      error).
+    data_tests: [not_null]
+  - name: is_sla_met
+    description: '{{ doc("is_sla_met") }}'
+    data_tests:
+    - not_null:
+        config:
+          where: not is_response_time_invalid
+- name: int_leads__touch_counts
+  description: '**Grain: one row per lead.** Interaction counts; zero for leads never contacted.'
+  data_tests:
+  - dbt_utils.equal_rowcount:
+      arguments:
+        compare_model: ref('stg_crm__leads')
+  columns:
+  - name: lead_id
+    description: '{{ doc("lead_id") }}'
+    data_tests: [unique, not_null]
+  - name: n_touches
+    description: '{{ doc("n_touches") }}'
+    data_tests:
+    - not_null
+    - dbt_utils.expression_is_true:
+        arguments:
+          expression: '>= n_calls + n_emails + n_meetings'
+  - name: n_calls
+    description: Number of calls.
+  - name: n_emails
+    description: Number of e-mails.
+  - name: n_meetings
+    description: Number of meetings.
+  - name: n_late_records
+    description: Interactions recorded more than `var('late_record_hours')` after they happened.
+  - name: last_touch_at
+    description: Time of the latest interaction (UTC).

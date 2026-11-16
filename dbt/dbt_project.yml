@@ -1,0 +1,49 @@
+# dbt project: transforms the raw layer into a tested star schema.
+# Run from the repository root:
+#   dbt build --project-dir dbt --profiles-dir dbt
+name: lead_funnel
+version: "0.1.0"
+config-version: 2
+profile: lead_funnel
+require-dbt-version: [">=1.9.0", "<2.0.0"]
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+analysis-paths: ["analyses"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # business rule: a lead meets the SLA if the first response arrives within this time
+  sla_minutes: 60
+  # time zone of the support organisation (business hours, local dates)
+  local_timezone: "Europe/Berlin"
+  # responses later than this are flagged as outliers (likely data errors)
+  response_outlier_days: 30
+  # interactions stored more than this after they happened are "late arriving"
+  late_record_hours: 48
+
+models:
+  lead_funnel:
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+
+seeds:
+  lead_funnel:
+    +schema: reference
+
+data_tests:
+  lead_funnel:
+    +store_failures: false

@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F04 — Dimensional model with dbt](../features/F04-dimensional-model-dbt.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 3 h |
 | **Depends on** | F04-T04 |
 | **Branch** | `feat/F04-T05-fact-models` |
@@ -35,4 +35,10 @@ Declaring the grain in the YAML description prevents the most common analytics b
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- `fct_leads` — **accumulating snapshot**, grain one row per lead: milestones (created, first response, opportunity) as columns, SLA flags, activity counts and outcome. `fct_interactions` — **transaction fact**, grain one row per interaction, with `is_first_touch` and `is_recorded_late`.
+- **Point-in-time joins** to the SCD2 `dim_agent` on the *local* event date: a lead created before an agent's team change belongs to the old team version. Verified: agent A012's leads split 858 (inbound_dach) / 558 (inbound_international) at the change date.
+- Foreign keys are never null: `campaign_key` falls back to the `'-1'` "No campaign" member; `relationships` tests to every dimension.
+- **Reconciliation** tests: `equal_rowcount` fact vs staging for both facts, and a singular test `assert_converted_leads_reconcile_with_opportunities` (number *and* total amount of opportunities must match the source).
+- Design note: low-cardinality lead attributes (country, industry, size band, score) stay on `fct_leads` for BI convenience. A separate `dim_lead` would be 1:1 with the fact, which Kimball advises against.
+- Full project: **121 dbt tests pass**, on 50 000 and on 2 000 leads. In the warehouse the naïve gap is already visible: conversion 21.2 % (SLA met) vs 11.4 % (missed).
+- CI: new `e2e` job (after `test`) — generate 2 000 leads → ingest → `dbt deps` → `dbt source freshness` → `dbt build`. `deps` must run before any other dbt command, because dbt parses the whole project (including `dbt_utils` macros) first.

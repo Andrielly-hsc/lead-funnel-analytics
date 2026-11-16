@@ -1,5 +1,7 @@
 # SQL lint/format rules (dbt Labs style: lowercase, trailing commas, 4-space indent).
-# The templater switches from `jinja` to `dbt` in F04-T01, once the dbt project exists.
+# Templater: `jinja` with dbt builtins (ref, source, var, config) — fast and needs no
+# database or installed packages, so it runs in pre-commit and in the CI lint job.
+# The `dbt` templater would be more exact but needs dbt + packages + a profile at lint time.
 [sqlfluff]
 dialect = duckdb
 templater = jinja
@@ -24,3 +26,11 @@ line_position = trailing
 
 [sqlfluff:templater:jinja]
 apply_dbt_builtins = true
+# project macros (e.g. pseudonymise) so models using them can be parsed
+load_macros_from_path = dbt/macros
+# python stubs for package macros (dbt_utils), see dbt/lint_stubs/
+library_path = dbt/lint_stubs
+
+# Lint-time stand-ins for dbt functions the jinja templater does not provide.
+[sqlfluff:templater:jinja:macros]
+env_var = {% macro env_var(name, default='') %}{{ default }}{% endmacro %}

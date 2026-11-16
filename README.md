@@ -56,6 +56,16 @@ lead-funnel ingest --full-refresh  # reload everything
 Files that break the data contract are moved to `data/quarantine/`; every decision is
 recorded in `meta.load_log`.
 
+### Build the star schema (dbt)
+
+```bash
+dbt deps  --project-dir dbt --profiles-dir dbt   # install dbt_utils (once)
+dbt build --project-dir dbt --profiles-dir dbt   # seeds, staging, intermediate, marts + data tests
+dbt docs generate --project-dir dbt --profiles-dir dbt && dbt docs serve --project-dir dbt --profiles-dir dbt
+```
+
+Lineage diagram: [docs/lineage.md](docs/lineage.md).
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 

@@ -21,3 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ingestion into the DuckDB raw layer (`lead-funnel ingest`): explicit types from the data contract,
   snapshot replace in one transaction, idempotent by file hash, quarantine of contract violations and
   an audit trail in `meta.load_log`.
+- dbt star schema on DuckDB: staging (standardisation seeds, pseudonymisation), intermediate
+  (single SLA definition), marts (`fct_leads`, `fct_interactions`, conformed dimensions, SCD2
+  `dim_agent` with point-in-time joins), reconciliation tests, exposures and generated lineage;
+  end-to-end pipeline job in CI.

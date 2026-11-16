@@ -83,7 +83,7 @@ flowchart LR
 |---|---|---|---|
 | **Landing** (`data/raw/`) | Files exactly as the source delivers them | Generator | Never edited by hand. Immutable once written. |
 | **Raw** | Byte-for-byte copy in tables + `_loaded_at`, `_source_file`, `_file_hash` | Python ingestion | No transformations. Lets you re-run everything downstream. |
-| **Staging** | One model per source table: rename, cast, standardise codes, deduplicate | dbt | 1:1 with sources. No joins. |
+| **Staging** | One model per source table: rename, cast, standardise codes, deduplicate, pseudonymise | dbt | 1:1 with sources; only joins to mapping seeds. |
 | **Intermediate** | Reusable business logic (e.g. first response per lead) | dbt | Not exposed to end users. |
 | **Marts** | Star schema for analysis (facts + dimensions) | dbt | Documented, tested, stable column names. |
 | **Consumers** | SQL analyses, statistics, dashboard | SQL, Python, Streamlit | Read **only** from marts. |
@@ -201,12 +201,16 @@ and each has different typing and parsing pitfalls.
 
 ### 5.2 Dimensional model (Kimball star schema)
 
+As built in F04 (full lineage: [lineage.md](lineage.md); column documentation:
+`dbt docs generate && dbt docs serve`).
+
 ```mermaid
 erDiagram
     FCT_LEADS }o--|| DIM_DATE : created_date_key
     FCT_LEADS }o--|| DIM_CHANNEL : channel_key
-    FCT_LEADS }o--|| DIM_LEAD_SOURCE : source_key
-    FCT_LEADS }o--o| DIM_AGENT : first_agent_key
+    FCT_LEADS }o--|| DIM_LEAD_SOURCE : lead_source_key
+    FCT_LEADS }o--|| DIM_CAMPAIGN : campaign_key
+    FCT_LEADS }o--|| DIM_AGENT : owner_agent_key
     FCT_INTERACTIONS }o--|| FCT_LEADS : lead_key
     FCT_INTERACTIONS }o--|| DIM_AGENT : agent_key
     FCT_INTERACTIONS }o--|| DIM_DATE : event_date_key
@@ -214,29 +218,44 @@ erDiagram
     FCT_LEADS {
         string lead_key PK
         string lead_id "natural key"
-        timestamp created_at
-        timestamp first_response_at
-        double minutes_to_first_response
-        boolean sla_met
-        boolean is_converted
-        double opportunity_amount
+        timestamptz created_at
+        timestamptz first_response_at
+        double minutes_to_first_response "null if never answered"
+        boolean is_sla_met
+        boolean is_response_time_invalid
         int n_touches
+        boolean is_converted
+        double opportunity_amount_eur
     }
     FCT_INTERACTIONS {
         string interaction_key PK
         string lead_key FK
-        string agent_key FK
+        string agent_key FK "point-in-time"
         string event_type
-        timestamp occurred_at
-        int duration_s
+        timestamptz occurred_at
+        bigint duration_s
+        boolean is_first_touch
+        boolean is_recorded_late
     }
     DIM_AGENT {
-        string agent_key PK "surrogate"
+        string agent_key PK "hash(agent_id, valid_from)"
         string agent_id "natural key"
         string team
-        date valid_from
-        date valid_to
+        string seniority
+        date valid_from "inclusive"
+        date valid_to "exclusive, null = current"
         boolean is_current
+    }
+    DIM_CAMPAIGN {
+        string campaign_key PK "-1 = No campaign"
+        string campaign_id
+        double budget_eur
+    }
+    DIM_DATE {
+        int date_key PK "YYYYMMDD"
+        date date_day
+        int iso_year
+        int iso_week
     }
 ```
 
@@ -245,12 +264,17 @@ erDiagram
 1. **Declare the grain first.** `fct_leads` = one row per *unique* lead
    (accumulating snapshot: milestones such as first response and conversion are
    columns). `fct_interactions` = one row per contact event (transaction fact).
-2. **Surrogate keys** (`*_key`, hash of natural key + validity) for every
-   dimension, generated with `dbt_utils.generate_surrogate_key`. Natural keys are
-   kept for traceability.
+2. **Surrogate keys** (`*_key`, hash of the natural key, plus validity for SCD2)
+   generated with `dbt_utils.generate_surrogate_key`. Natural keys are kept for
+   traceability.
 3. **Conformed dimensions** — `dim_date` and `dim_agent` are shared by both facts.
-4. **SCD Type 2** for `dim_agent` (team changes keep history), built with a dbt snapshot.
-5. **Facts hold numbers, dimensions hold descriptions.** No free-text in facts.
+4. **SCD Type 2** for `dim_agent`, built directly from the history in the HR export
+   (a dbt snapshot would only be needed if the source overwrote history). Facts join
+   to it **point-in-time** on the local event date.
+5. **No null foreign keys:** a "No campaign" member (`'-1'`) instead of null.
+6. **Facts hold numbers, dimensions hold descriptions.** No free text in facts;
+   low-cardinality lead codes (country, size band) stay on `fct_leads`, because a
+   `dim_lead` would be 1:1 with the fact.
 
 ---
 
