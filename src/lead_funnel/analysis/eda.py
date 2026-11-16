@@ -423,3 +423,166 @@ def team_change_comparison(df: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
     return t.sort_values(["agent_id", "period"], ascending=[True, False]).reset_index(drop=True)
+
+
+# ----------------------------------------------------------------------------------
+# Anomalies and missingness
+# ----------------------------------------------------------------------------------
+OUTLIER_DAYS = 30  # same threshold as var('response_outlier_days') in dbt
+
+
+def iqr_fences(series: pd.Series, k: float = 1.5) -> tuple[float, float]:
+    """Tukey fences: [Q1 − k·IQR, Q3 + k·IQR]."""
+    q1, q3 = series.quantile([0.25, 0.75])
+    return q1 - k * (q3 - q1), q3 + k * (q3 - q1)
+
+
+def robust_z(series: pd.Series) -> pd.Series:
+    """(x − median) / (1.4826 · MAD). The constant makes it comparable to a z-score for
+    normal data; median and MAD are not dragged by the outliers they should detect."""
+    median = series.median()
+    mad = (series - median).abs().median()
+    return (series - median) / (1.4826 * mad)
+
+
+def outlier_method_comparison(minutes: pd.Series) -> pd.DataFrame:
+    """Share of response times each rule flags, on raw minutes vs log-minutes.
+
+    On a right-skewed variable, rules built for symmetric data flag a large share of
+    perfectly legitimate long waits (nights, weekends). Transform first, then flag.
+    """
+    raw = minutes.dropna()
+    log = np.log10(raw.clip(lower=1 / 60))
+    _, raw_hi = iqr_fences(raw)
+    _, log_hi = iqr_fences(log)
+    rules = {
+        "IQR fence on raw minutes": raw > raw_hi,
+        "IQR fence on log10(minutes)": log > log_hi,
+        "robust z > 3.5 on log10(minutes)": robust_z(log) > 3.5,
+        f"domain rule: > {OUTLIER_DAYS} days": raw > OUTLIER_DAYS * 24 * 60,
+    }
+    return pd.DataFrame(
+        {
+            "rule": list(rules),
+            "flagged": [int(m.sum()) for m in rules.values()],
+            "share": [float(m.mean()) for m in rules.values()],
+        }
+    )
+
+
+def classify_response_times(df: pd.DataFrame) -> pd.Series:
+    """Separate data *errors* from genuine extremes, for every answered lead.
+
+    * impossible  — first contact before the lead existed (negative duration)
+    * implausible — more than 30 days (a wrong import date, not a slow agent)
+    * extreme but plausible — long waits explained by the process (nights, weekends)
+    * normal
+    """
+    answered = df[df["is_responded"]]
+    minutes = answered["minutes_to_first_response"]
+    log = np.log10(minutes.clip(lower=1 / 60))
+    category = np.select(
+        [
+            minutes < 0,
+            minutes > OUTLIER_DAYS * 24 * 60,
+            robust_z(log[minutes >= 0]).reindex(minutes.index).fillna(0) > 2,
+        ],
+        ["impossible (negative)", f"implausible (> {OUTLIER_DAYS} days)", "extreme but plausible"],
+        default="normal",
+    )
+    return pd.Series(category, index=answered.index, name="response_time_class")
+
+
+def detection_vs_injected(df: pd.DataFrame, injected: dict) -> pd.DataFrame:
+    """Precision and recall of the rule-based flags against the generator's log."""
+    rows = []
+    for flag, key in (
+        ("is_response_time_invalid", "negative_response_lead_ids"),
+        ("is_response_time_outlier", "extreme_delay_lead_ids"),
+    ):
+        flagged = set(df.loc[df[flag], "lead_id"])
+        truth = set(injected[key])
+        tp = len(flagged & truth)
+        rows.append(
+            {
+                "flag": flag,
+                "flagged": len(flagged),
+                "injected": len(truth),
+                "precision": tp / len(flagged) if flagged else float("nan"),
+                "recall": tp / len(truth) if truth else float("nan"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def missingness_by(df: pd.DataFrame, column: str, by: str) -> pd.DataFrame:
+    """Share of missing values of ``column`` per group, with Wilson CIs.
+
+    Equal shares across groups are consistent with MCAR; clearly different shares mean
+    the data is *not* missing completely at random (MAR or MNAR), so dropping the rows
+    would bias the sample towards the groups that report the value more often.
+    """
+    g = df.groupby(by)[column]
+    out = pd.DataFrame({"n": g.size(), "missing": g.apply(lambda s: int(s.isna().sum()))})
+    out["share"] = out["missing"] / out["n"]
+    out["lo"], out["hi"] = wilson_ci(out["missing"], out["n"])
+    return out.sort_values("share", ascending=False)
+
+
+def plot_anomalies(df: pd.DataFrame, path: Path) -> Path:
+    """Where each outlier rule cuts on the response-time distribution + MAR evidence."""
+    viz.apply_style()
+    minutes = valid_response_minutes(df)
+    log = np.log10(minutes.clip(lower=1 / 60))
+    fig, (ax1, ax2) = viz.plt.subplots(1, 2, figsize=(12, 4.6), width_ratios=[1.35, 1])
+
+    ax1.hist(log, bins=80, color=viz.SEQUENTIAL[7], zorder=2)
+    _, raw_hi = iqr_fences(minutes)
+    _, log_hi = iqr_fences(log)
+    z_hi = log.median() + 3.5 * 1.4826 * (log - log.median()).abs().median()
+    cuts = [
+        (np.log10(raw_hi), "IQR on raw", 0.95),
+        (log_hi, "IQR on log", 0.80),
+        (z_hi, "robust z 3.5", 0.65),
+        (np.log10(OUTLIER_DAYS * 24 * 60), f"> {OUTLIER_DAYS} days", 0.95),
+    ]
+    for x, name, height in cuts:
+        ax1.axvline(x, color=viz.TEXT_PRIMARY, linewidth=1, linestyle="--")
+        ax1.text(x + 0.05, ax1.get_ylim()[1] * height, name, fontsize=8,
+                 backgroundcolor=viz.SURFACE)  # fmt: skip
+    ticks = [1, 10, 60, 600, 1440, 10080, 43200]
+    ax1.set_xticks(np.log10(ticks), ["1 min", "10 min", "1 h", "10 h", "1 d", "1 wk", "30 d"])
+    ax1.set_xlabel("Minutes to first response (log scale)")
+    ax1.set_ylabel("Leads")
+    share_raw = float((minutes > raw_hi).mean())
+    ax1.set_title(f"IQR on raw minutes flags {share_raw:.0%} of leads as outliers")
+
+    miss = missingness_by(df, "company_size", "channel")
+    viz.bars_with_ci(
+        ax2,
+        [viz.label(i) for i in miss.index],
+        miss["share"],
+        miss["lo"],
+        miss["hi"],
+        miss["n"],
+        [viz.CHANNEL_COLORS[i] for i in miss.index],
+    )
+    viz.percent_axis(ax2, "x")
+    ax2.set_title("Company size missing, by channel")
+    fig.suptitle(
+        "Outliers are not errors: on skewed data flag after a log transform, and use domain "
+        "rules for errors",
+        x=0.01,
+        ha="left",
+        fontweight="bold",
+        fontsize=12,
+    )
+    fig.tight_layout()
+    others = miss.drop(index="web_form")
+    ratio = miss.loc["web_form", "share"] / (others["missing"].sum() / others["n"].sum())
+    viz.caption(
+        fig,
+        "Left: answered leads with a valid response time. Right: missing company size is "
+        f"{ratio:.0f}× more frequent for web-form leads (optional field) — not missing at random.",
+    )
+    return viz.save_fig(fig, path)
