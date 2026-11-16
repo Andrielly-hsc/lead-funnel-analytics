@@ -43,7 +43,7 @@ Load landing files into DuckDB reliably: idempotent, validated, auditable.
 |---|---|---|---|
 | [F03-T01](../tasks/F03-T01-warehouse-setup.md) | Create the DuckDB warehouse and raw schema | 1 h | Done |
 | [F03-T02](../tasks/F03-T02-idempotent-loaders.md) | Implement idempotent loaders | 3 h | Done |
-| [F03-T03](../tasks/F03-T03-contract-validation.md) | Validate files against the data contract | 2 h | To Do |
+| [F03-T03](../tasks/F03-T03-contract-validation.md) | Validate files against the data contract | 2 h | Done |
 | [F03-T04](../tasks/F03-T04-ingestion-tests.md) | Test the ingestion layer | 2 h | To Do |
 
 ## Syllabus topics covered
