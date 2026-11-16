@@ -28,6 +28,8 @@ line_position = trailing
 apply_dbt_builtins = true
 # project macros (e.g. pseudonymise) so models using them can be parsed
 load_macros_from_path = dbt/macros
+# python stubs for package macros (dbt_utils), see dbt/lint_stubs/
+library_path = dbt/lint_stubs
 
 # Lint-time stand-ins for dbt functions the jinja templater does not provide.
 [sqlfluff:templater:jinja:macros]
