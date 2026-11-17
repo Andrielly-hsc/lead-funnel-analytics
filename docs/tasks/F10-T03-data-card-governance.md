@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F10 — Case study documentation & release](../features/F10-case-study-and-release.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | F10-T02 |
 | **Branch** | `feat/F10-T03-data-card-governance` |
@@ -32,4 +32,7 @@ Governance documentation is increasingly required (GDPR, EU AI Act). Showing it 
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- `docs/data/data_card.md`, structured after *Datasheets for Datasets* (Gebru et al.): motivation, composition (files, row counts, grain, why there is no real person in the data, deliberate defects, no sensitive attributes), generation process and what it does **not** model, preprocessing and protection, intended and **out-of-scope uses**, distribution, maintenance.
+- **Governance as if the data were real:** GDPR principles mapped to concrete project choices — minimisation (no direct identifiers in marts), pseudonymisation ≠ anonymisation (salt must be secret; Recital 26), accuracy (precision-first duplicate rule), storage limitation (nothing persisted; a real deployment needs a retention period for raw exports and quarantine).
+- **Misuse risks named explicitly:** using agent-level KPIs to rate individuals, generalising synthetic distributions to real funnels, and calling pipeline value "revenue".
+- Row counts taken from the seed-42 `_manifest.json`.
