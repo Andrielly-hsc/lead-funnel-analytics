@@ -1,9 +1,43 @@
 # Does faster first response increase lead conversion?
 
-> **Status:** methods and causal discussion written in F08-T05. The executive summary is
-> added in F10-T02. All numbers: seed 42, 50 000 leads (49 761 after the pre-registered
-> exclusions); every one is reproducible from `notebooks/02_inference.ipynb` and
-> `src/lead_funnel/analysis/`. Pre-registration: [`analysis_plan.md`](analysis_plan.md).
+> Lead Funnel Analytics · v1.0.0 · Author: Andrielly-hsc · Data: synthetic CRM, seed 42,
+> 50 000 leads in 2025 (49 761 after the pre-registered exclusions). Pre-registration:
+> [`analysis_plan.md`](analysis_plan.md). Every number is traceable — see the table
+> [*Where each number comes from*](#7-where-each-number-comes-from).
+
+## Executive summary
+
+**Question.** Management wants to know whether answering leads within 60 minutes increases
+conversion, and what a faster-response policy would be worth.
+
+**Answer.** Yes — but far less than the raw numbers suggest, and mostly for leads that
+today wait overnight or over a weekend.
+
+| Finding | Number | Confidence |
+|---|---|---|
+| Raw conversion gap, SLA met vs missed | +9.6 pp | High (statistically certain) — but **not** an effect |
+| Share of that gap explained by lead quality (confounding) | about two thirds | High |
+| Real gain for leads that missed the SLA, if answered within 30 min | **+3.6 pp** (95 % CI 3.3-4.1) | High for observed factors; unmeasured confounding possible |
+| Gain if *every* lead were answered within 30 min | **+2.5 pp ≈ 1 250 opportunities ≈ €36 M pipeline a year** | Medium (depends on the policy actually reaching those leads) |
+| Gain for business-hours leads only | +1.9 pp | Medium — below the +2 pp threshold of practical interest |
+
+**Recommendations**
+
+1. **Do not judge teams by the raw SLA-vs-conversion gap.** Two thirds of it reflects which
+   leads they received, not how fast they were.
+2. **Run an A/B test of evening and weekend on-call coverage** before investing: that is
+   where the gain is concentrated and where the 60-minute SLA is currently impossible (0 %
+   outside Mon-Fri 08:00-18:00). Design, metric and sample size in
+   [§6](#6-recommendation-confirm-with-an-experiment).
+3. **Clean the CRM before measuring.** Duplicate leads, clock errors and wrong import dates
+   each moved a KPI; the data-quality rules in this project should run before every report.
+
+**Limits.** Observational data: the adjustment covers lead score, channel, source and company
+size, not signals agents may read that the CRM does not record (urgency, budget). Results
+cover one year of one organisation. The data is synthetic, which is what allowed the
+estimates to be checked against the true effects ([§3](#3-results-after-adjustment)).
+
+---
 
 ## 1. What the raw data says — and why it cannot be taken at face value
 
@@ -136,3 +170,21 @@ evidence that does not depend on having measured every confounder.
 
 Randomisation breaks the link between lead quality and response time by design, so the
 experiment answers the question even if agents can read signals the CRM never records.
+
+## 7. Where each number comes from
+
+| Number in this report | Source (re-run to reproduce) |
+|---|---|
+| 21.2 % vs 11.6 %, +9.6 pp, CI, p-value | `lead-funnel report` → [results § H1](inference/results.md#h1--conversion-sla-met-vs-missed-naïve-association); code `analysis/inference.py::sla_conversion_test` |
+| Spearman −0.18 (score vs response time) | [results § Correlations](inference/results.md#correlations-answered-leads) |
+| OR 0.83 (0.82-0.85), naïve 0.77 | [results § H3](inference/results.md#h3--response-time-and-conversion-naïve-vs-adjusted-logistic-model); `analysis/regression.py` |
+| +3.6 pp, +2.5 pp and their CIs; truth +3.2 / +2.2 pp | [results § Comparison with the true effects](inference/results.md#comparison-with-the-true-effects-synthetic-data-only) (200 bootstrap refits) |
+| 1 250 opportunities, €36 M | 2.49 pp × 50 000 leads; × average deal value €29 323 ([dashboard KPIs](../docs/metrics.md), `sql/analysis/01_funnel_kpis.sql`) |
+| Calibration ±0.7 pp, binned ORs 1.00 / 0.90 / 0.59 / 0.42, VIF | [results § H3](inference/results.md#h3--response-time-and-conversion-naïve-vs-adjusted-logistic-model) |
+| 20-seed bias study, 90 % coverage | [results § Bias check](inference/results.md#bias-check-on-20-independent-datasets); `analysis/robustness.py::seed_study` |
+| Robustness table (+2.9 / +4.7 / +3.4 / +1.9 pp), 19 segment tests | [results § Sensitivity](inference/results.md#sensitivity-of-the-adjusted-analysis) and [§ Multiple testing](inference/results.md#multiple-testing--h1-within-19-segments) |
+| SLA 0 % outside business hours | [`reports/sql/02_sla_compliance.md`](sql/02_sla_compliance.md) (Q3); [EDA notebook](../notebooks/01_eda.ipynb) §4 |
+| Sample sizes for the experiment (5 429 / 2 468 per arm) | power calculation in [`analysis_plan.md` §5](analysis_plan.md#5-power-computed-from-the-overall-conversion-rate-only) |
+
+All of it is regenerated by the pipeline in the [README](../README.md#run-it); the same seed
+gives the same numbers.
