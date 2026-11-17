@@ -41,7 +41,7 @@ Package the work as a business case study that a recruiter understands in 2 minu
 |---|---|---|---|
 | [F10-T01](../tasks/F10-T01-readme-case-study.md) | Write the README as a case study | 2 h | Done |
 | [F10-T02](../tasks/F10-T02-analysis-report.md) | Write the final analytical report | 2 h | Done |
-| [F10-T03](../tasks/F10-T03-data-card-governance.md) | Write the data card and governance notes | 1 h | To Do |
+| [F10-T03](../tasks/F10-T03-data-card-governance.md) | Write the data card and governance notes | 1 h | Done |
 | [F10-T04](../tasks/F10-T04-release-v1.md) | Publish the repository and release v1.0.0 | 1 h | To Do |
 
 ## Syllabus topics covered
