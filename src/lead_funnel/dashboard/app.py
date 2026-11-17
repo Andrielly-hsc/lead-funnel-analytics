@@ -122,21 +122,33 @@ with overview:
         shown = [m for m in metrics.METRICS if m.key != "pipeline_per_lead_eur"]
         for row in (shown[:4], shown[4:]):
             for col, m in zip(st.columns(len(row)), row, strict=True):
-                delta = None
+                delta, colour, note = None, "normal", ""
                 if has_previous and pd.notna(previous[m.key]):
                     diff = current[m.key] - previous[m.key]
-                    delta = f"{diff * 100:+.1f} pp" if m.unit == "rate" else fmt(diff, m.unit)
-                inverse = m.unit == "minutes"  # shorter waits are better
+                    if m.unit == "rate":
+                        delta = f"{diff * 100:+.1f} pp"
+                    else:  # sign first, then the formatted magnitude: "-€1.3 M", "+4 min"
+                        delta = ("-" if diff < 0 else "+") + fmt(abs(diff), m.unit)
+                    colour = "inverse" if m.unit == "minutes" else "normal"  # shorter is better
+                    if m.unit == "rate" and queries.change_is_noise(
+                        current[m.key], current["leads"], previous[m.key], previous["leads"]
+                    ):
+                        colour = "off"  # grey: not distinguishable from sampling noise
+                        note = " The change vs the previous period is within sampling noise."
                 col.metric(
                     m.name,
                     fmt(current[m.key], m.unit),
                     delta,
-                    delta_color="inverse" if inverse else "normal",
-                    help=f"{m.question} Formula: {m.sql}. {m.caveat}",
+                    delta_color=colour,
+                    help=f"{m.question} Formula: {m.sql}. {m.caveat}{note}",
                 )
         st.caption(
             "Deltas compare with the previous period of the same length"
-            + ("." if has_previous else " (not available: the period starts with the data).")
+            + (
+                "; grey deltas on rates are within sampling noise (two-proportion test, 95 %)."
+                if has_previous
+                else " (not available: the period starts with the data)."
+            )
         )
 
         weeks = cached("weekly", filters)
@@ -350,5 +362,21 @@ with teams_tab:
 # definitions
 # ----------------------------------------------------------------------------------
 with about:
+    st.markdown(
+        """
+### How to read the uncertainty
+
+- **Whiskers** on rates are 95 % confidence intervals (Wilson): the range of rates that
+  are compatible with the data. If two groups' intervals overlap a lot, do not rank them.
+- **Grey deltas** on the KPI tiles mean the change since the previous period is within
+  what random variation alone would produce — no action is needed to "explain" it.
+- **n < 100**: rates on fewer than 100 leads move by several points from week to week by
+  chance alone; the dashboard warns instead of letting them be compared.
+- **Association, not cause.** Channels, sources and teams receive leads of different
+  quality, so a higher rate does not show that the group itself *causes* better results.
+  The causal analysis (adjusted for lead quality) is in `reports/analysis_report.md`.
+- **Synthetic data:** every number here comes from a simulated CRM (seed 42).
+"""
+    )
     st.markdown(metrics.render_metrics_doc().split("\n", 2)[2])
     st.caption(f"Data refreshed from the warehouse · rendered {date.today():%d %b %Y}")

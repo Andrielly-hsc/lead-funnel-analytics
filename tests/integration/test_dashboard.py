@@ -164,3 +164,35 @@ def test_app_renders_and_warns_on_small_selections(warehouse: Path, monkeypatch)
     warnings = " ".join(w.value for w in at.warning)
     assert "too uncertain" in warnings  # the whole selection is small
     assert "fewer than 100 leads" in warnings  # and so is every agent
+
+
+@pytest.mark.parametrize(
+    ("p_now", "n_now", "p_before", "n_before", "noise"),
+    [
+        (0.416, 4_000, 0.412, 4_000, True),  # 0.4 pp on 4 000 leads: noise
+        (0.45, 4_000, 0.40, 4_000, False),  # 5 pp on 4 000 leads: real change
+        (0.60, 20, 0.40, 20, True),  # 20 pp on 20 leads: still noise
+        (0.5, 0, 0.4, 100, True),  # no data
+    ],
+)
+def test_change_is_noise(p_now, n_now, p_before, n_before, noise) -> None:
+    assert q.change_is_noise(p_now, n_now, p_before, n_before) is noise
+
+
+def test_app_explains_uncertainty(warehouse: Path, monkeypatch) -> None:
+    from streamlit.testing.v1 import AppTest
+
+    monkeypatch.setenv("LF_DB_PATH", str(warehouse))
+    at = AppTest.from_file(str(APP), default_timeout=60).run()
+    text = " ".join(m.value for m in at.markdown)
+    assert "How to read the uncertainty" in text and "Association, not cause" in text
+    first = at.sidebar.date_input[0].value[0]
+    # a later sub-period has a previous period inside the data, so deltas appear
+    at.sidebar.date_input[0].set_value(
+        (first + pd.Timedelta(days=28), first + pd.Timedelta(days=55))
+    )
+    at.run()
+    assert not at.exception
+    deltas = [m for m in at.metric if m.delta]
+    assert deltas, "deltas expected when a previous period exists"
+    assert any("grey deltas" in c.value for c in at.caption)
