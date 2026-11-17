@@ -1,0 +1,78 @@
+// DAX measures mirroring src/lead_funnel/dashboard/metrics.py (the metric layer).
+// Status: written to match the SQL definitions, NOT yet validated inside Power BI Desktop.
+// Validate with the reconciliation numbers in powerbi/README.md before using.
+//
+// Every measure applies the same base filter as the dashboard: probable duplicates excluded.
+
+Leads =
+CALCULATE (
+    COUNTROWS ( fct_leads ),
+    fct_leads[is_probable_duplicate] = FALSE ()
+)
+
+Response rate =
+DIVIDE (
+    CALCULATE (
+        COUNTROWS ( fct_leads ),
+        fct_leads[is_probable_duplicate] = FALSE (),
+        fct_leads[is_responded] = TRUE ()
+    ),
+    [Leads]
+)
+
+// Leads with an invalid response time have a blank is_sla_met and leave the denominator,
+// exactly like avg(is_sla_met::int) in SQL.
+SLA met =
+DIVIDE (
+    CALCULATE (
+        COUNTROWS ( fct_leads ),
+        fct_leads[is_probable_duplicate] = FALSE (),
+        fct_leads[is_sla_met] = TRUE ()
+    ),
+    CALCULATE (
+        COUNTROWS ( fct_leads ),
+        fct_leads[is_probable_duplicate] = FALSE (),
+        NOT ISBLANK ( fct_leads[is_sla_met] )
+    )
+)
+
+// MEDIAN ignores blanks (never-answered leads), like median() in SQL.
+Median minutes to first response =
+CALCULATE (
+    MEDIAN ( fct_leads[minutes_to_first_response] ),
+    fct_leads[is_probable_duplicate] = FALSE (),
+    fct_leads[is_response_time_invalid] = FALSE ()
+)
+
+// PERCENTILE.INC interpolates linearly, like quantile_cont() in DuckDB.
+P90 minutes to first response =
+CALCULATE (
+    PERCENTILE.INC ( fct_leads[minutes_to_first_response], 0.9 ),
+    fct_leads[is_probable_duplicate] = FALSE (),
+    fct_leads[is_response_time_invalid] = FALSE ()
+)
+
+Conversion rate =
+DIVIDE (
+    CALCULATE (
+        COUNTROWS ( fct_leads ),
+        fct_leads[is_probable_duplicate] = FALSE (),
+        fct_leads[is_converted] = TRUE ()
+    ),
+    [Leads]
+)
+
+Pipeline value =
+CALCULATE (
+    SUM ( fct_leads[opportunity_amount_eur] ),
+    fct_leads[is_probable_duplicate] = FALSE ()
+)
+
+Pipeline per lead =
+DIVIDE ( [Pipeline value], [Leads] )
+
+Touches per lead =
+CALCULATE (
+    AVERAGE ( fct_leads[n_touches] ),
+    fct_leads[is_probable_duplicate] = FALSE ()
+)

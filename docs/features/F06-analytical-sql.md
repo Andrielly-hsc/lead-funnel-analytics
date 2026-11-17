@@ -33,7 +33,7 @@ Answer the descriptive business questions with well-structured SQL, and show awa
 ## Acceptance criteria
 
 - [x] Each query in `sql/analysis/` has a header comment: question, grain, author, assumptions
-- [ ] Results of KPI queries reconcile with dashboard numbers — *deferred: verified in F09-T02 once the dashboard exists*
+- [x] Results of KPI queries reconcile with dashboard numbers — *verified in F09-T02: `queries.reconcile_with_sql()`, tested and run in CI*
 - [x] Pitfalls document shows wrong vs right query with results
 
 ## Tasks

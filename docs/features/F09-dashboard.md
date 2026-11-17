@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | To Do |
+| **Status** | Done (T04 optional, deferred) |
 | **Priority** | Should (MoSCoW) |
 | **Depends on** | [F06](F06-analytical-sql.md), [F08](F08-statistical-inference.md) |
 | **Estimate** | 8 h |
@@ -31,18 +31,18 @@ Give managers an interactive, honest view of funnel KPIs, including uncertainty.
 
 ## Acceptance criteria
 
-- [ ] App starts with one command and shows numbers identical to SQL KPI queries
-- [ ] Every KPI has a tooltip/definition linked to the metric doc
-- [ ] Segments with small n are flagged
+- [x] App starts with one command and shows numbers identical to SQL KPI queries
+- [x] Every KPI has a tooltip/definition linked to the metric doc
+- [x] Segments with small n are flagged
 
 ## Tasks
 
 | ID | Task | Estimate | Status |
 |---|---|---|---|
-| [F09-T01](../tasks/F09-T01-metric-definitions.md) | Define the KPIs (metric layer document) | 1 h | To Do |
-| [F09-T02](../tasks/F09-T02-streamlit-app.md) | Build the Streamlit dashboard | 3 h | To Do |
-| [F09-T03](../tasks/F09-T03-uncertainty-communication.md) | Communicate uncertainty in the dashboard | 1 h | To Do |
-| [F09-T04](../tasks/F09-T04-power-bi-optional.md) | (Optional) Build a Power BI version | 3 h | To Do |
+| [F09-T01](../tasks/F09-T01-metric-definitions.md) | Define the KPIs (metric layer document) | 1 h | Done |
+| [F09-T02](../tasks/F09-T02-streamlit-app.md) | Build the Streamlit dashboard | 3 h | Done |
+| [F09-T03](../tasks/F09-T03-uncertainty-communication.md) | Communicate uncertainty in the dashboard | 1 h | Done |
+| [F09-T04](../tasks/F09-T04-power-bi-optional.md) | (Optional) Build a Power BI version | 3 h | Deferred (optional) |
 
 ## Syllabus topics covered
 
