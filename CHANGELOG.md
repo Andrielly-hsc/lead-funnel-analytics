@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-17
+
+First public release: the complete case study.
+
 ### Added
 
 - Repository structure, licence and planning documentation (architecture, ADRs, backlog).
@@ -46,3 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   KPI once (`docs/metrics.md` generated from it), reconciliation with the analytical SQL in tests and
   CI, confidence intervals, small-sample warnings and noise-aware KPI deltas. Power BI assets
   (Parquet export, DAX measures, guide) prepared; the `.pbix` is deferred.
+- Case-study documentation: README (challenge, solution, result), final analytical report with an
+  executive summary and a traceability table, and a data card (`docs/data/data_card.md`) with
+  intended and out-of-scope uses and data-protection notes.
+
+[Unreleased]: https://github.com/Andrielly-hsc/lead-funnel-analytics/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Andrielly-hsc/lead-funnel-analytics/releases/tag/v1.0.0
