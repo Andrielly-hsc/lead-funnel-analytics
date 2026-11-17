@@ -32,6 +32,7 @@ dependencies = [
     "scipy>=1.13",
     "pytz>=2024.1",  # needed by duckdb to return TIMESTAMPTZ values to Python
     "statsmodels>=0.14",
+    "streamlit>=1.40",
 ]
 
 [project.optional-dependencies]
