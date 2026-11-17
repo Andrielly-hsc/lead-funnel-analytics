@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | **Feature** | [F10 — Case study documentation & release](../features/F10-case-study-and-release.md) |
-| **Status** | To Do |
+| **Status** | Done |
 | **Estimate** | 1 h |
 | **Depends on** | F10-T03 |
 | **Branch** | `feat/F10-T04-release-v1` |
@@ -34,4 +34,8 @@ Semantic versioning and releases show you treat analytics as a product with a li
 
 ## Notes
 
-_Add decisions, problems found and links to the PR here while working._
+- Version bumped to **1.0.0** in `pyproject.toml`, `lead_funnel.__version__` and `dbt_project.yml` (Semantic Versioning: first public, stable release of the case study).
+- `CHANGELOG.md`: the accumulated *Unreleased* entries became `[1.0.0] - 2026-11-17`, with the case-study documentation added and compare/release links at the bottom (Keep a Changelog format).
+- Repository public since F01, topics already set, CI green on every PR.
+- Full suite before release: 177 tests passed, 91 % coverage.
+- **Remaining after merge:** tag `v1.0.0` on the merge commit in `main`, create the GitHub release with notes from the changelog, pin the repo on the profile.
