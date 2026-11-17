@@ -253,3 +253,16 @@ def reconcile_with_sql(con: duckdb.DuckDBPyConnection, sql_file) -> pd.DataFrame
         d, s = round(float(dash[key]), digits), float(sql_row[sql_col])
         rows.append({"kpi": key, "dashboard": d, "sql_analysis": s, "match": d == s})
     return pd.DataFrame(rows)
+
+
+def change_is_noise(p_now: float, n_now: float, p_before: float, n_before: float) -> bool:
+    """Is a change between two rates indistinguishable from sampling noise (two-sided z-test,
+    α = 0.05)? Dashboards that colour every small move red or green make people react to
+    randomness; noise-level changes are shown in grey instead."""
+    if min(n_now, n_before) <= 0:
+        return True
+    pooled = (p_now * n_now + p_before * n_before) / (n_now + n_before)
+    se = (pooled * (1 - pooled) * (1 / n_now + 1 / n_before)) ** 0.5
+    if se == 0:
+        return p_now == p_before
+    return abs(p_now - p_before) / se < 1.96
