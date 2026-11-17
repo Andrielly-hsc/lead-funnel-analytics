@@ -42,7 +42,7 @@ Give managers an interactive, honest view of funnel KPIs, including uncertainty.
 | [F09-T01](../tasks/F09-T01-metric-definitions.md) | Define the KPIs (metric layer document) | 1 h | Done |
 | [F09-T02](../tasks/F09-T02-streamlit-app.md) | Build the Streamlit dashboard | 3 h | Done |
 | [F09-T03](../tasks/F09-T03-uncertainty-communication.md) | Communicate uncertainty in the dashboard | 1 h | Done |
-| [F09-T04](../tasks/F09-T04-power-bi-optional.md) | (Optional) Build a Power BI version | 3 h | To Do |
+| [F09-T04](../tasks/F09-T04-power-bi-optional.md) | (Optional) Build a Power BI version | 3 h | Deferred (optional) |
 
 ## Syllabus topics covered
 
