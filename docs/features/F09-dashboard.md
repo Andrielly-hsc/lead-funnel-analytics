@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | In Progress |
+| **Status** | Done (T04 optional, deferred) |
 | **Priority** | Should (MoSCoW) |
 | **Depends on** | [F06](F06-analytical-sql.md), [F08](F08-statistical-inference.md) |
 | **Estimate** | 8 h |
@@ -31,9 +31,9 @@ Give managers an interactive, honest view of funnel KPIs, including uncertainty.
 
 ## Acceptance criteria
 
-- [ ] App starts with one command and shows numbers identical to SQL KPI queries
-- [ ] Every KPI has a tooltip/definition linked to the metric doc
-- [ ] Segments with small n are flagged
+- [x] App starts with one command and shows numbers identical to SQL KPI queries
+- [x] Every KPI has a tooltip/definition linked to the metric doc
+- [x] Segments with small n are flagged
 
 ## Tasks
 

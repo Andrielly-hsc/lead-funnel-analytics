@@ -42,3 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   logistic models with g-computation compared against the true effect, Holm/BH corrections,
   sensitivity checks, a 20-seed bias study, and the causal discussion with an experiment proposal
   (`reports/analysis_report.md`).
+- KPI dashboard (`streamlit run src/lead_funnel/dashboard/app.py`): a metric layer that defines every
+  KPI once (`docs/metrics.md` generated from it), reconciliation with the analytical SQL in tests and
+  CI, confidence intervals, small-sample warnings and noise-aware KPI deltas. Power BI assets
+  (Parquet export, DAX measures, guide) prepared; the `.pbix` is deferred.

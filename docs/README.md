@@ -28,7 +28,7 @@ each in its own Markdown file, versioned with the code.
 | [F06](features/F06-analytical-sql.md) | Analytical SQL | Must | F04 | 4 | 8 h | Done |
 | [F07](features/F07-exploratory-analysis.md) | Exploratory & descriptive analysis | Must | F04 | 4 | 7 h | Done |
 | [F08](features/F08-statistical-inference.md) | Statistical inference & relationships | Must | F07 | 6 | 12 h | Done |
-| [F09](features/F09-dashboard.md) | KPI dashboard | Should | F06, F08 | 4 | 8 h | In Progress |
+| [F09](features/F09-dashboard.md) | KPI dashboard | Should | F06, F08 | 4 | 8 h | Done |
 | [F10](features/F10-case-study-and-release.md) | Case study documentation & release | Must | F05, F08, F09 | 4 | 6 h | To Do |
 
 ### Feature dependency graph

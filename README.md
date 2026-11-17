@@ -106,6 +106,17 @@ lead-funnel report    # pre-registered tests and models -> reports/inference/res
 [results](reports/inference/results.md) · [analysis report](reports/analysis_report.md) ·
 [notebook](notebooks/02_inference.ipynb).
 
+### KPI dashboard
+
+```bash
+streamlit run src/lead_funnel/dashboard/app.py
+```
+
+![Dashboard overview](reports/figures/dashboard_overview.png)
+
+Every number comes from one metric layer ([KPI definitions](docs/metrics.md)) and is checked
+against the analytical SQL. Power BI: see [powerbi/README.md](powerbi/README.md).
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 
