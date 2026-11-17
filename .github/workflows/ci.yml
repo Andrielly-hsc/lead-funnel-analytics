@@ -95,6 +95,8 @@ jobs:
         run: python scripts/run_sql.py --check
       - name: Run the pre-registered inference (quick settings)
         run: lead-funnel report --bootstrap 20 --seeds 2
+      - name: Reconcile the dashboard with the analytical SQL and smoke-test the app
+        run: python scripts/check_dashboard.py
       - name: Execute the notebooks top to bottom
         run: python scripts/run_notebooks.py --check
         env:
