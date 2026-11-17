@@ -96,6 +96,16 @@ python scripts/run_notebooks.py   # executes notebooks/*.ipynb top to bottom, sa
 and the [limitations of the source](docs/data/known_issues.md#limitations-of-the-source-what-the-data-cannot-tell-us).
 All logic lives in `src/lead_funnel/analysis/` and is unit-tested.
 
+### Statistical inference
+
+```bash
+lead-funnel report    # pre-registered tests and models -> reports/inference/results.md (~6 min)
+```
+
+[Analysis plan (pre-registered)](reports/analysis_plan.md) ·
+[results](reports/inference/results.md) · [analysis report](reports/analysis_report.md) ·
+[notebook](notebooks/02_inference.ipynb).
+
 <details>
 <summary>Windows: folder path with accents (e.g. <code>Portifólio</code>)</summary>
 

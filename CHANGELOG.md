@@ -37,3 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   typing, robust descriptive statistics, group and period comparisons with Wilson intervals,
   outlier rules vs domain rules, missingness mechanisms and the limitations of the source;
   shared visualisation standards in `analysis/viz.py`.
+- Statistical inference (`lead-funnel report`, notebook `02_inference.ipynb`): pre-registered analysis
+  plan, proportion tests with CIs and effect sizes, ANOVA with assumption checks, naive vs adjusted
+  logistic models with g-computation compared against the true effect, Holm/BH corrections,
+  sensitivity checks, a 20-seed bias study, and the causal discussion with an experiment proposal
+  (`reports/analysis_report.md`).
